@@ -8,6 +8,11 @@ afterEach(() => {
   cleanup();
 });
 
+// Clear IndexedDB before each test
+beforeEach(() => {
+  indexedDB.deleteDatabase('github-fitness');
+});
+
 // Mock localStorage
 const localStorageMock = (() => {
   let store: Record<string, string> = {};
