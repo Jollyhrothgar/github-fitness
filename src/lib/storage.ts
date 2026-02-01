@@ -249,6 +249,21 @@ export async function getLogsForExercise(exerciseId: string): Promise<WorkoutLog
   );
 }
 
+export async function getIncompleteLog(): Promise<WorkoutLog | undefined> {
+  const db = await getDB();
+  const allLogs = await db.getAll('logs');
+
+  // Find log without timestamp_end (incomplete workout)
+  // Return most recent one if multiple exist
+  const incomplete = allLogs
+    .filter((log) => !log.timestamp_end)
+    .sort((a, b) =>
+      new Date(b.timestamp_start).getTime() - new Date(a.timestamp_start).getTime()
+    );
+
+  return incomplete[0];
+}
+
 // ============ CONFIG (localStorage) ============
 
 const CONFIG_KEY = 'gh-fitness-config';
@@ -301,6 +316,7 @@ export function clearSchedule(): void {
 // ============ SYNC METADATA ============
 
 const SYNC_KEY = 'gh-fitness-last-sync';
+const ACTIVE_SESSION_KEY = 'gh-fitness-active-session';
 
 export function getLastSyncTime(): Date | null {
   const stored = localStorage.getItem(SYNC_KEY);
@@ -309,6 +325,20 @@ export function getLastSyncTime(): Date | null {
 
 export function setLastSyncTime(date: Date = new Date()): void {
   localStorage.setItem(SYNC_KEY, date.toISOString());
+}
+
+// ============ ACTIVE SESSION ============
+
+export function getActiveSessionId(): string | null {
+  return localStorage.getItem(ACTIVE_SESSION_KEY);
+}
+
+export function setActiveSessionId(sessionId: string): void {
+  localStorage.setItem(ACTIVE_SESSION_KEY, sessionId);
+}
+
+export function clearActiveSession(): void {
+  localStorage.removeItem(ACTIVE_SESSION_KEY);
 }
 
 // ============ UTILITY ============

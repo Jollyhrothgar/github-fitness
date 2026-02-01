@@ -15,6 +15,10 @@ interface UseWorkoutLogsReturn {
   deleteLog: (sessionId: string) => Promise<void>;
   getLogsForExercise: (exerciseId: string) => Promise<WorkoutLog[]>;
   getRecentLogs: (limit?: number) => Promise<WorkoutLog[]>;
+  getIncompleteLog: () => Promise<WorkoutLog | undefined>;
+  getActiveSessionId: () => string | null;
+  setActiveSessionId: (sessionId: string) => void;
+  clearActiveSession: () => void;
   refresh: () => Promise<void>;
 }
 
@@ -101,6 +105,22 @@ export function useWorkoutLogs(): UseWorkoutLogsReturn {
     return storage.getLogs({ limit });
   }, []);
 
+  const getIncompleteLog = useCallback(async () => {
+    return storage.getIncompleteLog();
+  }, []);
+
+  const getActiveSessionId = useCallback(() => {
+    return storage.getActiveSessionId();
+  }, []);
+
+  const setActiveSessionId = useCallback((sessionId: string) => {
+    storage.setActiveSessionId(sessionId);
+  }, []);
+
+  const clearActiveSession = useCallback(() => {
+    storage.clearActiveSession();
+  }, []);
+
   return {
     logs,
     loading,
@@ -112,6 +132,10 @@ export function useWorkoutLogs(): UseWorkoutLogsReturn {
     deleteLog,
     getLogsForExercise,
     getRecentLogs,
+    getIncompleteLog,
+    getActiveSessionId,
+    setActiveSessionId,
+    clearActiveSession,
     refresh: loadLogs,
   };
 }
