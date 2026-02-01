@@ -15,6 +15,11 @@ export const exerciseDbMapping: Record<string, string> = {
   pushups: 'Pushups',
   dips_chest: 'Chest_Dip',
   cable_fly: 'Cable_Crossover',
+  smith_machine_bench_press: 'Smith_Machine_Bench_Press',
+  smith_machine_incline_press: 'Smith_Incline_Bench_Press',
+  pec_deck: 'Butterfly',
+  floor_press_dumbbell: 'Dumbbell_Floor_Press',
+  floor_press_barbell: 'Barbell_Floor_Press',
 
   // Horizontal Pull
   barbell_row: 'Bent_Over_Barbell_Row',
@@ -25,6 +30,13 @@ export const exerciseDbMapping: Record<string, string> = {
   t_bar_row: 'T-Bar_Row_with_Handle',
   machine_row: 'Leverage_High_Row',
   face_pulls: 'Face_Pull',
+  landmine_row: 'One-Arm_Dumbbell_Row',
+  meadows_row: 'One-Arm_Dumbbell_Row',
+  chest_supported_row_machine: 'Leverage_High_Row',
+  inverted_row: 'Inverted_Row',
+  single_arm_cable_row: 'Seated_Cable_Rows',
+  seal_row: 'Bent_Over_Barbell_Row',
+  kroc_row: 'One-Arm_Dumbbell_Row',
 
   // Vertical Push
   overhead_press_barbell: 'Standing_Military_Press',
@@ -34,6 +46,13 @@ export const exerciseDbMapping: Record<string, string> = {
   push_press: 'Push_Press',
   lateral_raise_dumbbell: 'Side_Lateral_Raise',
   lateral_raise_cable: 'Cable_Lateral_Raise',
+  arnold_press: 'Arnold_Dumbbell_Press',
+  smith_machine_overhead_press: 'Smith_Machine_Overhead_Shoulder_Press',
+  front_raise_dumbbell: 'Front_Dumbbell_Raise',
+  front_raise_cable: 'Cable_Front_Raise',
+  landmine_press: 'Landmine_180s',
+  lateral_raise_machine: 'Leverage_Shoulder_Press',
+  pike_pushups: 'Push_Up',
 
   // Vertical Pull
   pullups: 'Pullups',
@@ -42,6 +61,12 @@ export const exerciseDbMapping: Record<string, string> = {
   lat_pulldown_close_grip: 'Close-Grip_Front_Lat_Pulldown',
   assisted_pullup_machine: 'Assisted_Parallel_Close-Grip_Pull-Up',
   straight_arm_pulldown: 'Straight-Arm_Pulldown',
+  neutral_grip_pullups: 'Pullups',
+  single_arm_lat_pulldown: 'One_Arm_Lat_Pulldown',
+  lat_pulldown_wide_grip: 'Wide-Grip_Lat_Pulldown',
+  lat_pulldown_underhand: 'Underhand_Cable_Pulldowns',
+  machine_pullover: 'Bent-Arm_Dumbbell_Pullover',
+  dumbbell_pullover: 'Bent-Arm_Dumbbell_Pullover',
 
   // Knee Dominant
   squat_barbell: 'Barbell_Full_Squat',
@@ -53,6 +78,12 @@ export const exerciseDbMapping: Record<string, string> = {
   bulgarian_split_squat: 'Single_Leg_Squat',
   leg_extension: 'Leg_Extensions',
   step_ups: 'Barbell_Step_Ups',
+  smith_machine_squat: 'Smith_Machine_Squat',
+  pendulum_squat: 'Hack_Squat',
+  belt_squat: 'Hack_Squat',
+  sissy_squat: 'Sissy_Squat',
+  walking_lunges: 'Dumbbell_Walking_Lunges',
+  leg_press_single_leg: 'Leg_Press',
 
   // Hip Dominant
   deadlift_conventional: 'Barbell_Deadlift',
@@ -67,6 +98,12 @@ export const exerciseDbMapping: Record<string, string> = {
   leg_curl_seated: 'Seated_Leg_Curl',
   back_extension: 'Hyperextensions_(Back_Extensions)',
   kettlebell_swing: 'Kettlebell_Sumo_High_Pull',
+  cable_pull_through: 'Cable_Pull_Through',
+  glute_ham_raise: 'Glute_Ham_Raise',
+  single_leg_rdl_dumbbell: 'Single-Leg_Dumbbell_Deadlift',
+  hip_thrust_machine: 'Barbell_Hip_Thrust',
+  reverse_hyperextension: 'Reverse_Hyperextension',
+  stiff_leg_deadlift: 'Stiff-Legged_Barbell_Deadlift',
 
   // Isolation - Arms
   bicep_curl_barbell: 'Barbell_Curl',
