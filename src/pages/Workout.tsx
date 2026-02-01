@@ -5,7 +5,7 @@ import { addSetToExercise } from '@/hooks/useWorkoutLogs';
 import type { WorkoutPlan, WorkoutDay, WorkoutLog, LoggedSet, ExerciseDefinition } from '@/types';
 import { ExerciseCard, RestTimer, WorkoutSummary, SubstitutionModal, ExerciseInfoModal } from '@/components/workout';
 
-type WorkoutState = 'loading' | 'no-plan' | 'pick-day' | 'active';
+type WorkoutState = 'loading' | 'no-plan' | 'pick-day' | 'preview' | 'active';
 
 export default function Workout() {
   const { plans, exercises, logs, config, schedule } = useStorage();
@@ -75,20 +75,28 @@ export default function Workout() {
     init();
   }, [getPlan, getIncompleteLog, activeSchedule, setActiveSessionId]);
 
-  // Start a workout for a specific day
-  const handleStartDay = useCallback(
-    async (selectedDay: WorkoutDay) => {
-      if (!plan) return;
+  // Preview a day before starting
+  const handlePreviewDay = useCallback((selectedDay: WorkoutDay) => {
+    setDay(selectedDay);
+    setState('preview');
+  }, []);
 
-      const newLog = createLog(plan.plan_meta.plan_id!, selectedDay.id, userConfig.device_id);
-      setDay(selectedDay);
-      setWorkoutLog(newLog);
-      setActiveSessionId(newLog.session_id);
-      await saveLog(newLog);
-      setState('active');
-    },
-    [plan, createLog, userConfig.device_id, saveLog, setActiveSessionId]
-  );
+  // Go back to day picker
+  const handleBackToPicker = useCallback(() => {
+    setDay(null);
+    setState('pick-day');
+  }, []);
+
+  // Actually start the workout
+  const handleStartWorkout = useCallback(async () => {
+    if (!plan || !day) return;
+
+    const newLog = createLog(plan.plan_meta.plan_id!, day.id, userConfig.device_id);
+    setWorkoutLog(newLog);
+    setActiveSessionId(newLog.session_id);
+    await saveLog(newLog);
+    setState('active');
+  }, [plan, day, createLog, userConfig.device_id, saveLog, setActiveSessionId]);
 
   // Handle logging a set
   const handleLogSet = useCallback(
@@ -224,15 +232,15 @@ export default function Workout() {
   if (state === 'pick-day' && plan) {
     return (
       <div className="p-4">
-        <h1 className="text-2xl font-bold mb-2">Start Workout</h1>
+        <h1 className="text-2xl font-bold mb-2">Choose Workout</h1>
         <p className="text-text-secondary mb-6">{plan.plan_meta.plan_name}</p>
 
         <div className="space-y-3">
           {plan.schedule.map((scheduleDay) => (
             <button
               key={scheduleDay.id}
-              onClick={() => handleStartDay(scheduleDay)}
-              className="w-full bg-surface hover:bg-surface-elevated rounded-lg p-4 text-left transition-colors"
+              onClick={() => handlePreviewDay(scheduleDay)}
+              className="w-full bg-surface hover:bg-surface-elevated active:bg-surface-elevated/80 rounded-lg p-4 text-left transition-colors"
             >
               <h3 className="font-semibold">{scheduleDay.day_name}</h3>
               <p className="text-sm text-text-secondary mt-1">
@@ -256,6 +264,88 @@ export default function Workout() {
             </button>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  // Day preview (before starting)
+  if (state === 'preview' && plan && day) {
+    return (
+      <div className="p-4 pb-32">
+        {/* Header with back button */}
+        <div className="flex items-center gap-3 mb-4">
+          <button
+            onClick={handleBackToPicker}
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-text-secondary hover:text-text-primary active:bg-surface-elevated rounded-lg transition-colors"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold">{day.day_name}</h1>
+            <p className="text-sm text-text-secondary">{plan.plan_meta.plan_name}</p>
+          </div>
+        </div>
+
+        {/* Exercise list preview */}
+        <div className="space-y-2 mb-4">
+          {day.exercises.map((planned) => {
+            const exercise = exerciseList.find((e) => e.id === planned.exercise_id);
+            return (
+              <div
+                key={planned.exercise_id}
+                className="bg-surface rounded-lg p-4"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-text-muted text-sm">{planned.order}.</span>
+                      <h3 className="font-medium">
+                        {exercise?.name ?? planned.exercise_id.replace(/_/g, ' ')}
+                      </h3>
+                    </div>
+                    <p className="text-sm text-text-secondary mt-1">
+                      {planned.sets} sets × {planned.target_reps} reps
+                      {planned.target_rpe && ` @ RPE ${planned.target_rpe}`}
+                    </p>
+                  </div>
+                  {exercise && (
+                    <button
+                      onClick={() => setShowingInfoExercise(exercise)}
+                      className="min-h-[44px] min-w-[44px] flex items-center justify-center text-text-muted hover:text-text-primary active:bg-surface-elevated rounded-lg transition-colors"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+                {planned.notes && (
+                  <p className="text-sm text-text-muted mt-2 italic">{planned.notes}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Start button */}
+        <div className="fixed bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-background to-transparent pointer-events-none">
+          <button
+            onClick={handleStartWorkout}
+            className="w-full max-w-lg mx-auto block min-h-[48px] py-3 bg-primary hover:bg-primary-hover active:bg-primary-hover/90 rounded-lg font-medium transition-colors pointer-events-auto"
+          >
+            Start Workout
+          </button>
+        </div>
+
+        {/* Exercise info modal */}
+        {showingInfoExercise && (
+          <ExerciseInfoModal
+            exercise={showingInfoExercise}
+            onClose={() => setShowingInfoExercise(null)}
+          />
+        )}
       </div>
     );
   }
