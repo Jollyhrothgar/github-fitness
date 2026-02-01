@@ -190,6 +190,53 @@ export default function Settings() {
         </section>
       )}
 
+      {/* Workout History */}
+      {logs.logs.filter(l => l.timestamp_end).length > 0 && (
+        <section className="bg-surface rounded-lg p-4 mb-4">
+          <h2 className="text-sm font-medium text-text-secondary mb-3">
+            Workout History
+          </h2>
+          <div className="space-y-2">
+            {logs.logs
+              .filter(l => l.timestamp_end)
+              .slice(0, 10)
+              .map((log) => (
+                <div
+                  key={log.session_id}
+                  className="flex items-center justify-between py-2 px-3 bg-surface-elevated rounded-lg"
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {new Date(log.timestamp_start).toLocaleDateString(undefined, {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                      })}
+                    </p>
+                    <p className="text-xs text-text-muted">
+                      {log.performed_exercises.length} exercises
+                    </p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      await logs.deleteLog(log.session_id);
+                      await logs.refresh();
+                    }}
+                    className="min-h-[44px] px-3 py-2 text-error hover:bg-error/10 active:bg-error/20 rounded-lg text-sm transition-colors"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+          </div>
+          {logs.logs.filter(l => l.timestamp_end).length > 10 && (
+            <p className="text-xs text-text-muted mt-2 text-center">
+              Showing last 10 workouts
+            </p>
+          )}
+        </section>
+      )}
+
       {/* Debug Info */}
       <section className="bg-surface rounded-lg p-4">
         <h2 className="text-sm font-medium text-text-secondary mb-3">
