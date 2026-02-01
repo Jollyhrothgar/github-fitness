@@ -34,9 +34,11 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-// Clear localStorage before each test
+// Clear localStorage before each test but preserve seed flag to prevent auto-seeding
 beforeEach(() => {
   localStorage.clear();
+  // Set seed flag to prevent auto-seeding during tests
+  localStorage.setItem('gh-fitness-seeded', 'true');
 });
 
 // Mock matchMedia for responsive tests
