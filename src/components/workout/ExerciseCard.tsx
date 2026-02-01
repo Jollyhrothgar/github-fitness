@@ -175,15 +175,18 @@ export function ExerciseCard({
               </svg>
               How To
             </button>
-            <button
-              onClick={onSubstitute}
-              className="flex-1 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-elevated rounded transition-colors flex items-center justify-center gap-1"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-              </svg>
-              Swap
-            </button>
+            {/* Only show Swap if no sets logged yet */}
+            {loggedSets.length === 0 && (
+              <button
+                onClick={onSubstitute}
+                className="flex-1 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-elevated rounded transition-colors flex items-center justify-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                Swap
+              </button>
+            )}
           </div>
         </div>
       )}
