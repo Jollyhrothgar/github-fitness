@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useStorage } from '@/lib/StorageContext';
 import { addSetToExercise } from '@/hooks/useWorkoutLogs';
 import type { WorkoutPlan, WorkoutDay, WorkoutLog, LoggedSet, ExerciseDefinition } from '@/types';
-import { ExerciseCard, RestTimer, WorkoutSummary, SubstitutionModal } from '@/components/workout';
+import { ExerciseCard, RestTimer, WorkoutSummary, SubstitutionModal, ExerciseInfoModal } from '@/components/workout';
 
 export default function Workout() {
   const [searchParams] = useSearchParams();
@@ -34,6 +34,7 @@ export default function Workout() {
     exercise: ExerciseDefinition;
     group: string;
   } | null>(null);
+  const [showingInfoExercise, setShowingInfoExercise] = useState<ExerciseDefinition | null>(null);
 
   // Exercise substitutions map (original -> replacement)
   const [substitutions, setSubstitutions] = useState<Map<string, string>>(new Map());
@@ -218,6 +219,7 @@ export default function Workout() {
               vibrationEnabled={userConfig.timer_vibration_enabled}
               onLogSet={(set) => handleLogSet(planned.exercise_id, set)}
               onSubstitute={() => handleSubstitute(index, exercise, planned.substitution_group)}
+              onShowInfo={() => setShowingInfoExercise(exercise)}
               isActive={index === activeExerciseIndex}
               onActivate={() => setActiveExerciseIndex(index)}
             />
@@ -263,6 +265,14 @@ export default function Workout() {
             )
           }
           onCancel={() => setSubstitutingExercise(null)}
+        />
+      )}
+
+      {/* Exercise info modal */}
+      {showingInfoExercise && (
+        <ExerciseInfoModal
+          exercise={showingInfoExercise}
+          onClose={() => setShowingInfoExercise(null)}
         />
       )}
     </div>

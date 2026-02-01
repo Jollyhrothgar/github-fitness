@@ -4,3 +4,4 @@ export { RestTimer } from './RestTimer';
 export { ExerciseCard } from './ExerciseCard';
 export { WorkoutSummary } from './WorkoutSummary';
 export { SubstitutionModal } from './SubstitutionModal';
+export { ExerciseInfoModal } from './ExerciseInfoModal';

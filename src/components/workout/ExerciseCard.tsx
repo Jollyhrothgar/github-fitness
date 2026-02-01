@@ -13,6 +13,7 @@ interface ExerciseCardProps {
   vibrationEnabled?: boolean;
   onLogSet: (set: Omit<LoggedSet, 'timestamp'>) => void;
   onSubstitute: () => void;
+  onShowInfo: () => void;
   isActive: boolean;
   onActivate: () => void;
 }
@@ -27,6 +28,7 @@ export function ExerciseCard({
   vibrationEnabled = true,
   onLogSet,
   onSubstitute,
+  onShowInfo,
   isActive,
   onActivate,
 }: ExerciseCardProps) {
@@ -162,13 +164,27 @@ export function ExerciseCard({
             </div>
           )}
 
-          {/* Substitute button */}
-          <button
-            onClick={onSubstitute}
-            className="w-full py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-elevated rounded transition-colors"
-          >
-            Swap Exercise
-          </button>
+          {/* Action buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={onShowInfo}
+              className="flex-1 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-elevated rounded transition-colors flex items-center justify-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              How To
+            </button>
+            <button
+              onClick={onSubstitute}
+              className="flex-1 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-elevated rounded transition-colors flex items-center justify-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+              </svg>
+              Swap
+            </button>
+          </div>
         </div>
       )}
     </div>
