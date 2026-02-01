@@ -25,20 +25,20 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Bottom navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t border-surface-elevated pb-safe">
-        <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
+        <div className="flex justify-around items-stretch h-16 max-w-lg mx-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex flex-col items-center justify-center px-3 py-2 text-xs transition-colors ${
+                `flex-1 flex flex-col items-center justify-center min-h-[48px] text-xs transition-colors active:bg-surface-elevated/50 ${
                   isActive
                     ? 'text-primary'
                     : 'text-text-secondary hover:text-text-primary'
                 }`
               }
             >
-              <span className="text-lg mb-0.5">{item.icon}</span>
+              <span className="text-xl mb-0.5">{item.icon}</span>
               <span>{item.label}</span>
             </NavLink>
           ))}

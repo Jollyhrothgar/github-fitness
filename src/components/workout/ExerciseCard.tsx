@@ -163,7 +163,7 @@ export function ExerciseCard({
                     failure: false,
                   });
                 }}
-                className="text-sm text-text-secondary hover:text-text-primary mt-2"
+                className="min-h-[44px] px-4 py-3 text-sm text-text-secondary hover:text-text-primary active:bg-surface-elevated/50 rounded-lg mt-2"
               >
                 + Add extra set
               </button>
@@ -174,9 +174,9 @@ export function ExerciseCard({
           <div className="flex gap-2">
             <button
               onClick={onShowInfo}
-              className="flex-1 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-elevated rounded transition-colors flex items-center justify-center gap-1"
+              className="flex-1 min-h-[44px] py-3 text-sm text-text-secondary hover:text-text-primary active:bg-surface-elevated/80 hover:bg-surface-elevated rounded-lg transition-colors flex items-center justify-center gap-2"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               How To
@@ -185,9 +185,9 @@ export function ExerciseCard({
             {loggedSets.length === 0 && (
               <button
                 onClick={onSubstitute}
-                className="flex-1 py-2 text-sm text-text-secondary hover:text-text-primary hover:bg-surface-elevated rounded transition-colors flex items-center justify-center gap-1"
+                className="flex-1 min-h-[44px] py-3 text-sm text-text-secondary hover:text-text-primary active:bg-surface-elevated/80 hover:bg-surface-elevated rounded-lg transition-colors flex items-center justify-center gap-2"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
                 Swap

@@ -63,7 +63,7 @@ export function WeightInput({
           type="button"
           onClick={() => handleIncrement(-increment)}
           disabled={disabled || value <= 0}
-          className="w-12 h-12 bg-surface-elevated hover:bg-surface disabled:opacity-50 rounded-lg text-xl font-medium transition-colors"
+          className="w-12 h-12 bg-surface-elevated hover:bg-surface active:bg-surface/80 disabled:opacity-50 rounded-lg text-xl font-medium transition-colors"
           aria-label={`Decrease by ${increment}`}
         >
           -
@@ -90,7 +90,7 @@ export function WeightInput({
           type="button"
           onClick={() => handleIncrement(increment)}
           disabled={disabled}
-          className="w-12 h-12 bg-surface-elevated hover:bg-surface disabled:opacity-50 rounded-lg text-xl font-medium transition-colors"
+          className="w-12 h-12 bg-surface-elevated hover:bg-surface active:bg-surface/80 disabled:opacity-50 rounded-lg text-xl font-medium transition-colors"
           aria-label={`Increase by ${increment}`}
         >
           +

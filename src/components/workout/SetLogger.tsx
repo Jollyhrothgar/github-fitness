@@ -124,7 +124,7 @@ export function SetLogger({
             type="button"
             onClick={() => setReps(Math.max(0, reps - 1))}
             disabled={reps <= 0}
-            className="w-12 h-12 bg-surface-elevated hover:bg-surface disabled:opacity-50 rounded-lg text-xl font-medium transition-colors"
+            className="w-12 h-12 bg-surface-elevated hover:bg-surface active:bg-surface/80 disabled:opacity-50 rounded-lg text-xl font-medium transition-colors"
           >
             -
           </button>
@@ -161,20 +161,20 @@ export function SetLogger({
           <button
             type="button"
             onClick={() => setShowRpe(!showRpe)}
-            className="text-sm text-text-secondary hover:text-text-primary transition-colors"
+            className="min-h-[44px] px-3 py-2 text-sm text-text-secondary hover:text-text-primary active:bg-surface-elevated/50 rounded-lg transition-colors"
           >
             {showRpe ? '- Hide RPE' : '+ Add RPE'}
           </button>
 
           {showRpe && (
-            <div className="mt-2 space-y-2">
+            <div className="mt-2 space-y-3">
               <input
                 type="range"
                 min="1"
                 max="10"
                 value={rpe ?? 7}
                 onChange={(e) => setRpe(parseInt(e.target.value))}
-                className="w-full h-2 bg-surface-elevated rounded-lg appearance-none cursor-pointer accent-primary"
+                className="w-full h-3 bg-surface-elevated rounded-lg appearance-none cursor-pointer accent-primary"
               />
               <div className="text-center">
                 <p className="text-lg font-bold">
@@ -200,7 +200,7 @@ export function SetLogger({
       <button
         onClick={handleLogSet}
         disabled={reps === 0}
-        className="w-full py-3 bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
+        className="w-full min-h-[48px] py-3 bg-primary hover:bg-primary-hover active:bg-primary-hover/90 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
       >
         {isWarmup ? 'Log Warmup' : 'Log Set'}
       </button>
