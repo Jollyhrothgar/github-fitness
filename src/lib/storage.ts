@@ -7,10 +7,12 @@ import type {
   UserSchedule,
 } from '@/types';
 import { createDefaultConfig } from '@/types/config';
+import { seedExercises } from '@/data/seedExercises';
 
 // Database schema version - increment when schema changes
 const DB_VERSION = 1;
 const DB_NAME = 'github-fitness';
+const SEED_KEY = 'gh-fitness-seeded';
 
 // IndexedDB schema definition
 interface FitnessDBSchema extends DBSchema {
@@ -77,7 +79,34 @@ async function getDB(): Promise<IDBPDatabase<FitnessDBSchema>> {
 
 // ============ EXERCISES ============
 
+// Seed default exercises if database is empty
+async function ensureSeedData(): Promise<void> {
+  // Check if already seeded
+  if (localStorage.getItem(SEED_KEY)) return;
+
+  const db = await getDB();
+  const existingExercises = await db.getAll('exercises');
+
+  if (existingExercises.length === 0) {
+    const now = new Date().toISOString();
+    const tx = db.transaction('exercises', 'readwrite');
+    await Promise.all([
+      ...seedExercises.map((exercise) =>
+        tx.store.put({
+          ...exercise,
+          created_at: now,
+          updated_at: now,
+        })
+      ),
+      tx.done,
+    ]);
+  }
+
+  localStorage.setItem(SEED_KEY, 'true');
+}
+
 export async function getExercises(): Promise<ExerciseDefinition[]> {
+  await ensureSeedData();
   const db = await getDB();
   return db.getAll('exercises');
 }

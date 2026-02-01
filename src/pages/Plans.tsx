@@ -6,6 +6,76 @@ import { PlanBuilder } from '@/components/plan';
 
 type ViewMode = 'list' | 'import' | 'create' | 'edit';
 
+const AI_PROMPT = `You are a personal fitness coach helping me create a custom workout plan. I'll import the plan into my fitness tracking app, so please follow the exact JSON schema below.
+
+## Your Task
+1. Ask me about my fitness goals (strength, hypertrophy, weight loss, general fitness, etc.)
+2. Ask about my experience level (beginner, intermediate, advanced)
+3. Ask how many days per week I can train (2-6 days)
+4. Ask about any equipment limitations or preferences
+5. Ask about any injuries or movements I need to avoid
+6. Based on my answers, create a complete workout plan
+
+## JSON Schema
+
+\`\`\`typescript
+interface WorkoutPlan {
+  plan_meta: {
+    plan_id: string;        // lowercase_snake_case, e.g. "upper_lower_4day"
+    plan_name: string;      // Display name, e.g. "4-Day Upper/Lower Split"
+    version: string;        // "1.0"
+    days_per_week: number;  // Number of workout days
+    focus?: string;         // "strength" | "hypertrophy" | "powerbuilding" | "general"
+    author_agent?: string;  // Your name, e.g. "Claude"
+    notes?: string;         // Optional program notes
+  };
+  schedule: Array<{
+    id: string;             // e.g., "day_a", "day_b"
+    day_name: string;       // e.g., "Day A - Upper Body"
+    day_order: number;      // 0, 1, 2, etc.
+    exercises: Array<{
+      order: number;              // 1, 2, 3, etc.
+      exercise_id: string;        // lowercase_snake_case matching common exercises
+      substitution_group: string; // Movement pattern for exercise swaps:
+                                 // "horizontal_push" | "horizontal_pull" |
+                                 // "vertical_push" | "vertical_pull" |
+                                 // "knee_dominant" | "hip_dominant" |
+                                 // "isolation" | "core" | "carry_conditioning"
+      sets: number;               // Number of sets
+      target_reps: string;        // "8-10" or "5" or "30 seconds"
+      target_rpe?: number;        // 1-10 scale (optional)
+      rest_seconds: number;       // Rest between sets
+      notes?: string;             // Optional cues/notes
+    }>;
+  }>;
+}
+\`\`\`
+
+## Common Exercise IDs
+Use these exact IDs (or similar patterns):
+- Horizontal Push: bench_press_barbell, bench_press_dumbbell, incline_bench_press_barbell, chest_press_machine, pushups, dips_chest
+- Horizontal Pull: barbell_row, dumbbell_row, cable_row_seated, chest_supported_row, t_bar_row, face_pulls
+- Vertical Push: overhead_press_barbell, overhead_press_dumbbell, lateral_raise_dumbbell, push_press
+- Vertical Pull: pullups, chinups, lat_pulldown, lat_pulldown_close_grip
+- Knee Dominant: squat_barbell, front_squat, leg_press, hack_squat, lunges_dumbbell, bulgarian_split_squat, leg_extension
+- Hip Dominant: deadlift_conventional, deadlift_sumo, romanian_deadlift, trap_bar_deadlift, hip_thrust_barbell, leg_curl_lying, kettlebell_swing
+- Isolation: bicep_curl_barbell, bicep_curl_dumbbell, hammer_curl, tricep_pushdown, skull_crushers, calf_raise_standing
+- Core: plank, hanging_leg_raise, cable_crunch, ab_wheel_rollout, pallof_press
+
+## Output
+After our conversation, provide the complete JSON plan that I can copy and paste into my app. The JSON should be valid and ready to import.
+
+Let's begin! What are your fitness goals?`;
+
+const copyAIPrompt = async (): Promise<boolean> => {
+  try {
+    await navigator.clipboard.writeText(AI_PROMPT);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export default function Plans() {
   const { plans, schedule, exercises } = useStorage();
   const { plans: planList, loading, importPlan, deletePlan, savePlan } = plans;
@@ -129,6 +199,39 @@ export default function Plans() {
             className="px-4 py-2 bg-surface-elevated hover:bg-surface rounded-lg text-sm font-medium transition-colors"
           >
             {viewMode === 'import' ? 'Cancel' : 'Import'}
+          </button>
+        </div>
+      </div>
+
+      {/* Generate with AI Card */}
+      <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-lg p-4 mb-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <h3 className="font-medium flex items-center gap-2">
+              <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              Generate with AI
+            </h3>
+            <p className="text-sm text-text-secondary mt-1">
+              Copy a prompt to use with ChatGPT, Claude, or Gemini to create a personalized workout plan.
+            </p>
+          </div>
+          <button
+            onClick={async () => {
+              const success = await copyAIPrompt();
+              if (success) {
+                const btn = document.getElementById('copy-ai-btn');
+                if (btn) {
+                  btn.textContent = 'Copied!';
+                  setTimeout(() => { btn.textContent = 'Copy Prompt'; }, 2000);
+                }
+              }
+            }}
+            id="copy-ai-btn"
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
+          >
+            Copy Prompt
           </button>
         </div>
       </div>
