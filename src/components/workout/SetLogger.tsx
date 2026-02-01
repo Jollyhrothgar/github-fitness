@@ -26,7 +26,6 @@ interface SetLoggerProps {
   exercise: ExerciseDefinition;
   planned: PlannedExercise;
   setNumber: number;
-  totalSets: number;
   previousWeight?: number;
   previousReps?: number;
   unit: 'lbs' | 'kg';
@@ -39,7 +38,6 @@ export function SetLogger({
   exercise,
   planned,
   setNumber,
-  totalSets,
   previousWeight = 0,
   previousReps,
   unit,
@@ -51,8 +49,12 @@ export function SetLogger({
   const [calculatedWeight, setCalculatedWeight] = useState(previousWeight);
   const [reps, setReps] = useState(previousReps ?? 0);
   const [rpe, setRpe] = useState<number | undefined>(undefined);
-  const [isWarmup, setIsWarmup] = useState(setNumber === 1);
   const [showRpe, setShowRpe] = useState(false);
+
+  // First set is always warmup, subsequent sets are working sets
+  const isWarmup = setNumber === 1;
+  // Working set number (excludes warmup)
+  const workingSetNumber = isWarmup ? 0 : setNumber - 1;
 
   const handleWeightChange = (entered: number, calculated: number) => {
     setWeight(entered);
@@ -70,8 +72,8 @@ export function SetLogger({
       weight_calculated: calculatedWeight,
       unit,
       reps,
-      rpe,
-      failure: rpe !== undefined && rpe >= 10,
+      rpe: isWarmup ? undefined : rpe, // Don't track RPE for warmups
+      failure: !isWarmup && rpe !== undefined && rpe >= 10,
     };
     onLogSet(set);
   };
@@ -85,19 +87,23 @@ export function SetLogger({
         <div>
           <h3 className="font-semibold">{exercise.name}</h3>
           <p className="text-sm text-text-secondary">
-            Set {setNumber} of {totalSets} &middot; Target: {planned.target_reps} reps
-            {planned.target_rpe && ` @ RPE ${planned.target_rpe}`}
+            {isWarmup ? (
+              'Warmup set'
+            ) : (
+              <>
+                Set {workingSetNumber} of {planned.sets} &middot; Target: {planned.target_reps} reps
+                {planned.target_rpe && ` @ RPE ${planned.target_rpe}`}
+              </>
+            )}
           </p>
         </div>
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={isWarmup}
-            onChange={(e) => setIsWarmup(e.target.checked)}
-            className="w-4 h-4 rounded border-text-muted"
-          />
-          Warmup
-        </label>
+        <span className={`px-2 py-1 rounded text-xs font-medium ${
+          isWarmup
+            ? 'bg-warning/20 text-warning'
+            : 'bg-primary/20 text-primary'
+        }`}>
+          {isWarmup ? 'Warmup' : `Set ${workingSetNumber}`}
+        </span>
       </div>
 
       {/* Weight input */}
@@ -149,37 +155,39 @@ export function SetLogger({
         </div>
       </div>
 
-      {/* RPE (collapsible) */}
-      <div>
-        <button
-          type="button"
-          onClick={() => setShowRpe(!showRpe)}
-          className="text-sm text-text-secondary hover:text-text-primary transition-colors"
-        >
-          {showRpe ? '- Hide RPE' : '+ Add RPE'}
-        </button>
+      {/* RPE (collapsible) - only for working sets */}
+      {!isWarmup && (
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowRpe(!showRpe)}
+            className="text-sm text-text-secondary hover:text-text-primary transition-colors"
+          >
+            {showRpe ? '- Hide RPE' : '+ Add RPE'}
+          </button>
 
-        {showRpe && (
-          <div className="mt-2 space-y-2">
-            <input
-              type="range"
-              min="1"
-              max="10"
-              value={rpe ?? 7}
-              onChange={(e) => setRpe(parseInt(e.target.value))}
-              className="w-full h-2 bg-surface-elevated rounded-lg appearance-none cursor-pointer accent-primary"
-            />
-            <div className="text-center">
-              <p className="text-lg font-bold">
-                RPE {rpe ?? '-'}
-              </p>
-              <p className={`text-sm ${rpe === 10 ? 'text-error' : 'text-text-secondary'}`}>
-                {getRpeDescription(rpe)}
-              </p>
+          {showRpe && (
+            <div className="mt-2 space-y-2">
+              <input
+                type="range"
+                min="1"
+                max="10"
+                value={rpe ?? 7}
+                onChange={(e) => setRpe(parseInt(e.target.value))}
+                className="w-full h-2 bg-surface-elevated rounded-lg appearance-none cursor-pointer accent-primary"
+              />
+              <div className="text-center">
+                <p className="text-lg font-bold">
+                  RPE {rpe ?? '-'}
+                </p>
+                <p className={`text-sm ${rpe === 10 ? 'text-error' : 'text-text-secondary'}`}>
+                  {getRpeDescription(rpe)}
+                </p>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* Notes from plan */}
       {planned.notes && (
@@ -191,10 +199,10 @@ export function SetLogger({
       {/* Log button */}
       <button
         onClick={handleLogSet}
-        disabled={reps === 0 && !isWarmup}
+        disabled={reps === 0}
         className="w-full py-3 bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed rounded-lg font-medium transition-colors"
       >
-        Log Set
+        {isWarmup ? 'Log Warmup' : 'Log Set'}
       </button>
     </div>
   );

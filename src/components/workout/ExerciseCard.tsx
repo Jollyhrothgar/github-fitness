@@ -105,25 +105,32 @@ export function ExerciseCard({
           {/* Logged sets */}
           {loggedSets.length > 0 && (
             <div className="space-y-1">
-              {loggedSets.map((set, i) => (
-                <div
-                  key={i}
-                  className={`flex items-center justify-between py-2 px-3 rounded text-sm ${
-                    set.is_warmup ? 'bg-surface-elevated/50 text-text-muted' : 'bg-surface-elevated'
-                  }`}
-                >
-                  <span>
-                    {set.is_warmup ? 'W' : set.set_number - loggedSets.filter((s, j) => j < i && s.is_warmup).length}.
-                    {' '}{set.weight_calculated} {unit} × {set.reps}
-                    {set.rpe && <span className="text-text-muted"> @ RPE {set.rpe}</span>}
-                  </span>
-                  {!set.is_warmup && set.reps && (
-                    <span className="text-text-muted text-xs">
-                      ~{Math.round(estimate1RM(set.weight_calculated, set.reps))} 1RM
+              {loggedSets.map((set, i) => {
+                // Count working sets up to this point for proper numbering
+                const workingSetNum = loggedSets
+                  .slice(0, i + 1)
+                  .filter((s) => !s.is_warmup).length;
+
+                return (
+                  <div
+                    key={i}
+                    className={`flex items-center justify-between py-2 px-3 rounded text-sm ${
+                      set.is_warmup ? 'bg-warning/10 text-text-muted' : 'bg-surface-elevated'
+                    }`}
+                  >
+                    <span>
+                      {set.is_warmup ? 'W' : workingSetNum}.
+                      {' '}{set.weight_calculated} {unit} × {set.reps}
+                      {set.rpe && <span className="text-text-muted"> @ RPE {set.rpe}</span>}
                     </span>
-                  )}
-                </div>
-              ))}
+                    {!set.is_warmup && set.reps && (
+                      <span className="text-text-muted text-xs">
+                        ~{Math.round(estimate1RM(set.weight_calculated, set.reps))} 1RM
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -133,7 +140,6 @@ export function ExerciseCard({
               exercise={exercise}
               planned={planned}
               setNumber={nextSetNumber}
-              totalSets={planned.sets + loggedSets.filter((s) => s.is_warmup).length}
               previousWeight={previousWeight}
               previousReps={previousReps}
               unit={unit}
