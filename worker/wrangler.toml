@@ -1,0 +1,14 @@
+# Cloudflare Worker configuration for GitHub OAuth proxy
+name = "github-fitness-oauth"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+# Environment variables (set via `wrangler secret put`)
+# GITHUB_CLIENT_ID - Set via: wrangler secret put GITHUB_CLIENT_ID
+# GITHUB_CLIENT_SECRET - Set via: wrangler secret put GITHUB_CLIENT_SECRET
+# ALLOWED_ORIGIN - Set via: wrangler secret put ALLOWED_ORIGIN
+
+# Uncomment to use a custom domain
+# routes = [
+#   { pattern = "oauth.yourdomain.com/*", zone_name = "yourdomain.com" }
+# ]
