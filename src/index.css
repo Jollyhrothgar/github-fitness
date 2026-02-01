@@ -35,6 +35,16 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
+/* Height spacer for bottom safe area (home indicator) */
+.h-safe-area-inset-bottom {
+  height: env(safe-area-inset-bottom, 0px);
+}
+
+/* Padding for bottom safe area */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Utility for hiding scrollbar while keeping scroll functionality */
 .scrollbar-hide {
   -ms-overflow-style: none;

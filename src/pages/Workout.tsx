@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useStorage } from '@/lib/StorageContext';
 import { addSetToExercise } from '@/hooks/useWorkoutLogs';
 import type { WorkoutPlan, WorkoutDay, WorkoutLog, LoggedSet, ExerciseDefinition } from '@/types';
@@ -171,12 +171,12 @@ export default function Workout() {
           <p className="text-text-muted mb-4">
             Select a workout from your active plan to begin.
           </p>
-          <a
-            href="/"
+          <Link
+            to="/"
             className="inline-block px-4 py-2 bg-primary hover:bg-primary-hover rounded-lg text-sm font-medium transition-colors"
           >
             Go to Dashboard
-          </a>
+          </Link>
         </div>
       </div>
     );

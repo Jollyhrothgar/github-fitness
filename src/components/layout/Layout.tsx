@@ -17,14 +17,14 @@ const navItems = [
 export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen min-h-dvh flex flex-col bg-background safe-area-inset">
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto pb-20">{children}</main>
+      {/* Main content - pb-24 accounts for nav + safe area on notched iPhones */}
+      <main className="flex-1 overflow-y-auto pb-24">{children}</main>
 
       {/* PWA Install Prompt */}
       <InstallPrompt />
 
       {/* Bottom navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t border-surface-elevated">
+      <nav className="fixed bottom-0 left-0 right-0 bg-surface border-t border-surface-elevated pb-safe">
         <div className="flex justify-around items-center h-16 max-w-lg mx-auto">
           {navItems.map((item) => (
             <NavLink
@@ -43,8 +43,6 @@ export default function Layout({ children }: LayoutProps) {
             </NavLink>
           ))}
         </div>
-        {/* Safe area padding for home indicator */}
-        <div className="h-safe-area-inset-bottom" />
       </nav>
     </div>
   );
