@@ -31,7 +31,8 @@ export const DEFAULT_EQUIPMENT: EquipmentProfile = {
 
 // Generate a device ID
 export function generateDeviceId(): string {
-  return `${navigator.userAgent.slice(0, 10).replace(/\W/g, '')}_${Date.now().toString(36)}`;
+  const random = Math.random().toString(36).slice(2, 8);
+  return `${navigator.userAgent.slice(0, 10).replace(/\W/g, '')}_${Date.now().toString(36)}_${random}`;
 }
 
 // Create default config
