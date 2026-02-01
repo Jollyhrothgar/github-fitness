@@ -4,6 +4,24 @@ import { WeightInput } from './WeightInput';
 import { isInRepRange } from '@/lib/calculations';
 import { triggerHaptic } from '@/lib/haptics';
 
+// RPE descriptions based on reps in reserve (RIR)
+function getRpeDescription(rpe: number | undefined): string {
+  if (rpe === undefined) return 'Slide to rate effort';
+  switch (rpe) {
+    case 10: return 'Max effort — couldn\'t do another rep';
+    case 9: return 'Very hard — maybe 1 more rep';
+    case 8: return 'Hard — could do 2 more reps';
+    case 7: return 'Challenging — could do 3 more reps';
+    case 6: return 'Moderate — could do 4+ more reps';
+    case 5: return 'Moderate — good for technique work';
+    case 4: return 'Light — warmup intensity';
+    case 3: return 'Light — easy warmup';
+    case 2: return 'Very light — minimal effort';
+    case 1: return 'Minimal — just moving the weight';
+    default: return '';
+  }
+}
+
 interface SetLoggerProps {
   exercise: ExerciseDefinition;
   planned: PlannedExercise;
@@ -143,10 +161,6 @@ export function SetLogger({
 
         {showRpe && (
           <div className="mt-2 space-y-2">
-            <div className="flex justify-between text-xs text-text-muted">
-              <span>Easy</span>
-              <span>Hard</span>
-            </div>
             <input
               type="range"
               min="1"
@@ -155,10 +169,14 @@ export function SetLogger({
               onChange={(e) => setRpe(parseInt(e.target.value))}
               className="w-full h-2 bg-surface-elevated rounded-lg appearance-none cursor-pointer accent-primary"
             />
-            <p className="text-center text-sm">
-              RPE: <span className="font-medium">{rpe ?? '-'}</span>
-              {rpe === 10 && <span className="text-error ml-2">(Failure)</span>}
-            </p>
+            <div className="text-center">
+              <p className="text-lg font-bold">
+                RPE {rpe ?? '-'}
+              </p>
+              <p className={`text-sm ${rpe === 10 ? 'text-error' : 'text-text-secondary'}`}>
+                {getRpeDescription(rpe)}
+              </p>
+            </div>
           </div>
         )}
       </div>
