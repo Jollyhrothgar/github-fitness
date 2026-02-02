@@ -1,10 +1,10 @@
-import { createContext, useContext, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, ReactNode } from 'react';
 import { useExercises } from '@/hooks/useExercises';
 import { usePlans } from '@/hooks/usePlans';
 import { useWorkoutLogs } from '@/hooks/useWorkoutLogs';
 import { useConfig } from '@/hooks/useConfig';
 import { useSchedule } from '@/hooks/useSchedule';
-import { initializeSync } from '@/lib/sync';
+import { initializeSync, subscribeSyncState } from '@/lib/sync';
 
 // Get return types from hooks
 type ExercisesContext = ReturnType<typeof useExercises>;
@@ -35,10 +35,28 @@ export function StorageProvider({ children }: StorageProviderProps) {
   const config = useConfig();
   const schedule = useSchedule();
 
+  // Track previous sync status to detect completion
+  const prevSyncStatus = useRef<string | null>(null);
+
   // Initialize sync on app load
   useEffect(() => {
     initializeSync();
   }, []);
+
+  // Subscribe to sync state and refresh data when sync completes
+  useEffect(() => {
+    const unsubscribe = subscribeSyncState((state) => {
+      // Refresh data when sync transitions from 'syncing' to 'idle'
+      if (prevSyncStatus.current === 'syncing' && state.status === 'idle') {
+        exercises.refresh();
+        plans.refresh();
+        logs.refresh();
+      }
+      prevSyncStatus.current = state.status;
+    });
+
+    return unsubscribe;
+  }, [exercises, plans, logs]);
 
   const isLoading =
     exercises.loading ||
