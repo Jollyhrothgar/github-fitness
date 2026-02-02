@@ -21,7 +21,8 @@ describe('useExercises hook', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    expect(result.current.exercises).toEqual([]);
+    // Seed exercises are auto-loaded
+    expect(result.current.exercises.length).toBeGreaterThan(0);
     expect(result.current.error).toBeNull();
   });
 
@@ -32,14 +33,15 @@ describe('useExercises hook', () => {
       expect(result.current.loading).toBe(false);
     });
 
+    const initialCount = result.current.exercises.length;
     const exercise = createTestExercise({ id: 'test_save' });
 
     await act(async () => {
       await result.current.saveExercise(exercise);
     });
 
-    expect(result.current.exercises.length).toBe(1);
-    expect(result.current.exercises[0].id).toBe('test_save');
+    expect(result.current.exercises.length).toBe(initialCount + 1);
+    expect(result.current.exercises.some(e => e.id === 'test_save')).toBe(true);
   });
 
   it('deletes an exercise', async () => {
@@ -49,19 +51,20 @@ describe('useExercises hook', () => {
       expect(result.current.loading).toBe(false);
     });
 
+    const initialCount = result.current.exercises.length;
     const exercise = createTestExercise({ id: 'test_delete' });
 
     await act(async () => {
       await result.current.saveExercise(exercise);
     });
 
-    expect(result.current.exercises.length).toBe(1);
+    expect(result.current.exercises.length).toBe(initialCount + 1);
 
     await act(async () => {
       await result.current.deleteExercise('test_delete');
     });
 
-    expect(result.current.exercises.length).toBe(0);
+    expect(result.current.exercises.length).toBe(initialCount);
   });
 
   it('queries exercises by movement pattern', async () => {
@@ -74,18 +77,20 @@ describe('useExercises hook', () => {
     // Save exercises with different movement patterns
     await act(async () => {
       await result.current.saveExercise(
-        createTestExercise({ id: 'push1', movement_pattern: 'horizontal_push' })
+        createTestExercise({ id: 'test_push1', movement_pattern: 'horizontal_push' })
       );
       await result.current.saveExercise(
-        createTestExercise({ id: 'push2', movement_pattern: 'horizontal_push' })
+        createTestExercise({ id: 'test_push2', movement_pattern: 'horizontal_push' })
       );
       await result.current.saveExercise(
-        createTestExercise({ id: 'pull1', movement_pattern: 'horizontal_pull' })
+        createTestExercise({ id: 'test_pull1', movement_pattern: 'horizontal_pull' })
       );
     });
 
     const pushExercises = await result.current.getByMovement('horizontal_push');
-    expect(pushExercises.length).toBe(2);
+    // Includes seed horizontal_push exercises plus our 2 test ones
+    expect(pushExercises.some(e => e.id === 'test_push1')).toBe(true);
+    expect(pushExercises.some(e => e.id === 'test_push2')).toBe(true);
   });
 
   it('queries exercises by equipment type', async () => {
@@ -97,16 +102,16 @@ describe('useExercises hook', () => {
 
     await act(async () => {
       await result.current.saveExercise(
-        createTestExercise({ id: 'barbell1', equipment_type: 'barbell' })
+        createTestExercise({ id: 'test_barbell1', equipment_type: 'barbell' })
       );
       await result.current.saveExercise(
-        createTestExercise({ id: 'dumbbell1', equipment_type: 'dumbbell' })
+        createTestExercise({ id: 'test_dumbbell1', equipment_type: 'dumbbell' })
       );
     });
 
     const barbellExercises = await result.current.getByEquipment('barbell');
-    expect(barbellExercises.length).toBe(1);
-    expect(barbellExercises[0].id).toBe('barbell1');
+    // Includes seed barbell exercises plus our test one
+    expect(barbellExercises.some(e => e.id === 'test_barbell1')).toBe(true);
   });
 
   it('refreshes exercises from storage', async () => {
@@ -116,16 +121,18 @@ describe('useExercises hook', () => {
       expect(result.current.loading).toBe(false);
     });
 
+    const initialCount = result.current.exercises.length;
+
     await act(async () => {
       await result.current.saveExercise(createTestExercise({ id: 'refresh_test' }));
     });
 
-    expect(result.current.exercises.length).toBe(1);
+    expect(result.current.exercises.length).toBe(initialCount + 1);
 
     await act(async () => {
       await result.current.refresh();
     });
 
-    expect(result.current.exercises.length).toBe(1);
+    expect(result.current.exercises.length).toBe(initialCount + 1);
   });
 });

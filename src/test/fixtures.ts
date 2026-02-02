@@ -1,10 +1,11 @@
 import type { ExerciseDefinition, WorkoutPlan, WorkoutLog } from '@/types';
 
 // Sample exercise definitions for testing
+// Using unique IDs that don't conflict with seed data
 export const sampleExercises: ExerciseDefinition[] = [
   {
-    id: 'bench_press_barbell',
-    name: 'Barbell Bench Press',
+    id: 'test_bench_press',
+    name: 'Test Bench Press',
     equipment_type: 'barbell',
     movement_pattern: 'horizontal_push',
     primary_muscle_groups: ['chest', 'triceps', 'shoulders'],
@@ -12,8 +13,8 @@ export const sampleExercises: ExerciseDefinition[] = [
     default_bar_weight_lbs: 45,
   },
   {
-    id: 'squat_barbell',
-    name: 'Barbell Squat',
+    id: 'test_squat',
+    name: 'Test Squat',
     equipment_type: 'barbell',
     movement_pattern: 'knee_dominant',
     primary_muscle_groups: ['quadriceps', 'glutes', 'hamstrings'],
@@ -21,16 +22,16 @@ export const sampleExercises: ExerciseDefinition[] = [
     default_bar_weight_lbs: 45,
   },
   {
-    id: 'dumbbell_curl',
-    name: 'Dumbbell Curl',
+    id: 'test_curl',
+    name: 'Test Curl',
     equipment_type: 'dumbbell',
     movement_pattern: 'isolation',
     primary_muscle_groups: ['biceps'],
     weight_entry_mode: 'per_hand',
   },
   {
-    id: 'lat_pulldown_machine',
-    name: 'Lat Pulldown',
+    id: 'test_pulldown',
+    name: 'Test Pulldown',
     equipment_type: 'machine',
     movement_pattern: 'vertical_pull',
     primary_muscle_groups: ['lats', 'biceps'],
@@ -57,7 +58,7 @@ export const samplePlan: WorkoutPlan = {
       exercises: [
         {
           order: 1,
-          exercise_id: 'bench_press_barbell',
+          exercise_id: 'test_bench_press',
           substitution_group: 'horizontal_push',
           sets: 3,
           target_reps: '8-10',
@@ -67,7 +68,7 @@ export const samplePlan: WorkoutPlan = {
         },
         {
           order: 2,
-          exercise_id: 'dumbbell_curl',
+          exercise_id: 'test_curl',
           substitution_group: 'isolation',
           sets: 3,
           target_reps: '10-12',
@@ -83,7 +84,7 @@ export const samplePlan: WorkoutPlan = {
       exercises: [
         {
           order: 1,
-          exercise_id: 'squat_barbell',
+          exercise_id: 'test_squat',
           substitution_group: 'knee_dominant',
           sets: 3,
           target_reps: '5-8',
@@ -92,7 +93,7 @@ export const samplePlan: WorkoutPlan = {
         },
         {
           order: 2,
-          exercise_id: 'lat_pulldown_machine',
+          exercise_id: 'test_pulldown',
           substitution_group: 'vertical_pull',
           sets: 3,
           target_reps: '10-12',
@@ -116,7 +117,7 @@ export const sampleLog: WorkoutLog = {
   subjective_readiness: 7,
   performed_exercises: [
     {
-      exercise_id: 'bench_press_barbell',
+      exercise_id: 'test_bench_press',
       was_substitution: false,
       sets: [
         {

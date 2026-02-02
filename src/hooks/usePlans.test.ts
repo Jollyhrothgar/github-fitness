@@ -205,9 +205,10 @@ describe('usePlans hook', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    // Verify no exercises exist initially
+    // Seed exercises exist initially (auto-seeded)
     let exercises = await getExercises();
-    expect(exercises.length).toBe(0);
+    const initialCount = exercises.length;
+    expect(initialCount).toBeGreaterThan(0);
 
     // Import the sample plan
     const json = JSON.stringify(samplePlan);
@@ -217,17 +218,16 @@ describe('usePlans hook', () => {
     });
 
     // Should have created exercises for each unique exercise in the plan
-    expect(importResult!.createdExercises.length).toBe(4); // bench, squat, curl, lat pulldown
+    // (test_* exercises don't exist in seed data)
+    expect(importResult!.createdExercises.length).toBe(4);
 
-    // Verify exercises are now in storage
+    // Verify test exercises are now in storage
     exercises = await getExercises();
-    expect(exercises.length).toBe(4);
-    expect(exercises.map((e) => e.id).sort()).toEqual([
-      'bench_press_barbell',
-      'dumbbell_curl',
-      'lat_pulldown_machine',
-      'squat_barbell',
-    ]);
+    expect(exercises.length).toBe(initialCount + 4);
+    expect(exercises.some(e => e.id === 'test_bench_press')).toBe(true);
+    expect(exercises.some(e => e.id === 'test_curl')).toBe(true);
+    expect(exercises.some(e => e.id === 'test_squat')).toBe(true);
+    expect(exercises.some(e => e.id === 'test_pulldown')).toBe(true);
   });
 
   it('does not duplicate existing exercises on import', async () => {
@@ -252,14 +252,18 @@ describe('usePlans hook', () => {
       secondResult = await result.current.importPlan(JSON.stringify(plan2));
     });
 
-    // First import should create exercises
+    // First import should create the 4 test exercises (not in seed data)
     expect(firstResult!.createdExercises.length).toBe(4);
 
     // Second import should not create duplicates (same exercises used)
     expect(secondResult!.createdExercises.length).toBe(0);
 
-    // Should still only have 4 exercises total
+    // Should have seed exercises plus our 4 test exercises
     const exercises = await getExercises();
-    expect(exercises.length).toBe(4);
+    // Verify our 4 test exercises were created
+    expect(exercises.some(e => e.id === 'test_bench_press')).toBe(true);
+    expect(exercises.some(e => e.id === 'test_curl')).toBe(true);
+    expect(exercises.some(e => e.id === 'test_squat')).toBe(true);
+    expect(exercises.some(e => e.id === 'test_pulldown')).toBe(true);
   });
 });

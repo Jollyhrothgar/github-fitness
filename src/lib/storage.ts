@@ -13,6 +13,9 @@ import { seedExercises } from '@/data/seedExercises';
 const DB_VERSION = 1;
 const DB_NAME = 'github-fitness';
 const SEED_KEY = 'gh-fitness-seeded';
+// Increment this when seed exercise data is updated (e.g., new instructions added)
+const SEED_DATA_VERSION = 2; // v2: Added instructions for exercises
+const SEED_VERSION_KEY = 'gh-fitness-seed-version';
 
 // IndexedDB schema definition
 interface FitnessDBSchema extends DBSchema {
@@ -79,30 +82,66 @@ async function getDB(): Promise<IDBPDatabase<FitnessDBSchema>> {
 
 // ============ EXERCISES ============
 
-// Seed default exercises if database is empty
+// Seed default exercises if database is empty, or update with new seed data
 async function ensureSeedData(): Promise<void> {
-  // Check if already seeded
-  if (localStorage.getItem(SEED_KEY)) return;
-
   const db = await getDB();
-  const existingExercises = await db.getAll('exercises');
+  const currentVersion = parseInt(localStorage.getItem(SEED_VERSION_KEY) || '0', 10);
+  const isFirstSeed = !localStorage.getItem(SEED_KEY);
 
-  if (existingExercises.length === 0) {
-    const now = new Date().toISOString();
-    const tx = db.transaction('exercises', 'readwrite');
-    await Promise.all([
-      ...seedExercises.map((exercise) =>
-        tx.store.put({
-          ...exercise,
-          created_at: now,
-          updated_at: now,
-        })
-      ),
-      tx.done,
-    ]);
+  // First-time seeding: add all exercises
+  if (isFirstSeed) {
+    const existingExercises = await db.getAll('exercises');
+
+    if (existingExercises.length === 0) {
+      const now = new Date().toISOString();
+      const tx = db.transaction('exercises', 'readwrite');
+      await Promise.all([
+        ...seedExercises.map((exercise) =>
+          tx.store.put({
+            ...exercise,
+            created_at: now,
+            updated_at: now,
+          })
+        ),
+        tx.done,
+      ]);
+    }
+
+    localStorage.setItem(SEED_KEY, 'true');
+    localStorage.setItem(SEED_VERSION_KEY, String(SEED_DATA_VERSION));
+    return;
   }
 
-  localStorage.setItem(SEED_KEY, 'true');
+  // Update existing exercises with new seed data (e.g., new instructions)
+  if (currentVersion < SEED_DATA_VERSION) {
+    const now = new Date().toISOString();
+    const tx = db.transaction('exercises', 'readwrite');
+
+    for (const seedExercise of seedExercises) {
+      const existing = await tx.store.get(seedExercise.id);
+      if (existing) {
+        // Merge: add new fields from seed without overwriting existing data
+        // Specifically add instructions if missing
+        const updated = {
+          ...existing,
+          instructions: existing.instructions || seedExercise.instructions,
+          secondary_muscle_groups: existing.secondary_muscle_groups || seedExercise.secondary_muscle_groups,
+          updated_at: now,
+        };
+        await tx.store.put(updated);
+      } else {
+        // Exercise doesn't exist locally, add it
+        await tx.store.put({
+          ...seedExercise,
+          created_at: now,
+          updated_at: now,
+        });
+      }
+    }
+
+    await tx.done;
+    localStorage.setItem(SEED_VERSION_KEY, String(SEED_DATA_VERSION));
+  }
 }
 
 export async function getExercises(): Promise<ExerciseDefinition[]> {
@@ -401,6 +440,8 @@ export async function clearAllData(): Promise<void> {
   localStorage.removeItem(CONFIG_KEY);
   localStorage.removeItem(SCHEDULE_KEY);
   localStorage.removeItem(SYNC_KEY);
+  localStorage.removeItem(SEED_KEY);
+  localStorage.removeItem(SEED_VERSION_KEY);
 }
 
 // Export database for backup
