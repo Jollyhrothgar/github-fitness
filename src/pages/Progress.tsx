@@ -11,7 +11,7 @@ export default function Progress() {
   // Get all unique exercise IDs that have been performed
   const performedExerciseIds = useMemo(() => {
     const ids = new Set<string>();
-    for (const log of logs.logs) {
+    for (const log of logs.logs ?? []) {
       if (!log.timestamp_end) continue; // Only completed workouts
       for (const ex of log.performed_exercises) {
         ids.add(ex.exercise_id);
@@ -29,7 +29,7 @@ export default function Progress() {
 
   // Get exercise name for display
   const getExerciseName = (id: string) => {
-    const exercise = exercises.exercises.find((e) => e.id === id);
+    const exercise = (exercises.exercises ?? []).find((e) => e.id === id);
     return exercise?.name ?? id.replace(/_/g, ' ');
   };
 
@@ -39,7 +39,7 @@ export default function Progress() {
 
     const points: DataPoint[] = [];
 
-    for (const log of logs.logs) {
+    for (const log of logs.logs ?? []) {
       if (!log.timestamp_end) continue; // Only completed workouts
 
       const performed = log.performed_exercises.find(
@@ -69,7 +69,7 @@ export default function Progress() {
 
   // Get completed logs for history
   const completedLogs = useMemo(() => {
-    return logs.logs.filter((log) => log.timestamp_end);
+    return (logs.logs ?? []).filter((log) => log.timestamp_end);
   }, [logs.logs]);
 
   // Handle exercise selection from session detail
