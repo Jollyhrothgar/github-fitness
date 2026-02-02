@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ExerciseDefinition, MovementPattern, EquipmentType } from '@/types';
 import * as storage from '@/lib/storage';
+import { queueExercisesSync } from '@/lib/sync';
 
 interface UseExercisesReturn {
   exercises: ExerciseDefinition[];
@@ -42,6 +43,7 @@ export function useExercises(): UseExercisesReturn {
 
   const saveExercise = useCallback(async (exercise: ExerciseDefinition) => {
     await storage.saveExercise(exercise);
+    queueExercisesSync();
     await loadExercises();
   }, [loadExercises]);
 

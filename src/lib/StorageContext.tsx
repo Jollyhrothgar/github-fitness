@@ -1,9 +1,10 @@
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useExercises } from '@/hooks/useExercises';
 import { usePlans } from '@/hooks/usePlans';
 import { useWorkoutLogs } from '@/hooks/useWorkoutLogs';
 import { useConfig } from '@/hooks/useConfig';
 import { useSchedule } from '@/hooks/useSchedule';
+import { initializeSync } from '@/lib/sync';
 
 // Get return types from hooks
 type ExercisesContext = ReturnType<typeof useExercises>;
@@ -33,6 +34,11 @@ export function StorageProvider({ children }: StorageProviderProps) {
   const logs = useWorkoutLogs();
   const config = useConfig();
   const schedule = useSchedule();
+
+  // Initialize sync on app load
+  useEffect(() => {
+    initializeSync();
+  }, []);
 
   const isLoading =
     exercises.loading ||

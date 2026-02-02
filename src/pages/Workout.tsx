@@ -11,7 +11,7 @@ export default function Workout() {
   const { plans, exercises, logs, config, schedule } = useStorage();
   const { getPlan } = plans;
   const { exercises: exerciseList } = exercises;
-  const { createLog, saveLog, completeLog, getIncompleteLog, setActiveSessionId, clearActiveSession } = logs;
+  const { createLog, saveLog, completeLog, setActiveSessionId, clearActiveSession } = logs;
   const { config: userConfig } = config;
   const { schedule: activeSchedule, advanceToNext } = schedule;
 
@@ -36,29 +36,33 @@ export default function Workout() {
   // Exercise substitutions map (original -> replacement)
   const [substitutions, setSubstitutions] = useState<Map<string, string>>(new Map());
 
-  // Initialize: check for incomplete workout or show day picker
+  // Initialize: check for active workout session or show day picker
   useEffect(() => {
     async function init() {
-      // First check for incomplete workout
-      const incomplete = await getIncompleteLog();
+      // Only resume if there's an active session (user explicitly started a workout)
+      const activeSessionId = logs.getActiveSessionId();
 
-      if (incomplete) {
-        // Resume incomplete workout
-        const loadedPlan = await getPlan(incomplete.plan_ref);
-        if (loadedPlan) {
-          const loadedDay = loadedPlan.schedule.find((d) => d.id === incomplete.day_id);
-          if (loadedDay) {
-            setPlan(loadedPlan);
-            setDay(loadedDay);
-            setWorkoutLog(incomplete);
-            setActiveSessionId(incomplete.session_id);
-            setState('active');
-            return;
+      if (activeSessionId) {
+        // Try to resume the active session
+        const activeLog = await logs.getLog(activeSessionId);
+        if (activeLog && !activeLog.timestamp_end) {
+          const loadedPlan = await getPlan(activeLog.plan_ref);
+          if (loadedPlan) {
+            const loadedDay = loadedPlan.schedule.find((d) => d.id === activeLog.day_id);
+            if (loadedDay) {
+              setPlan(loadedPlan);
+              setDay(loadedDay);
+              setWorkoutLog(activeLog);
+              setState('active');
+              return;
+            }
           }
         }
+        // Active session invalid or completed - clear it
+        clearActiveSession();
       }
 
-      // No incomplete workout - check for active plan
+      // No active session - check for active plan
       if (activeSchedule?.active_plan_id) {
         const loadedPlan = await getPlan(activeSchedule.active_plan_id);
         if (loadedPlan) {
@@ -73,7 +77,7 @@ export default function Workout() {
     }
 
     init();
-  }, [getPlan, getIncompleteLog, activeSchedule, setActiveSessionId]);
+  }, [getPlan, logs, activeSchedule, clearActiveSession]);
 
   // Preview a day before starting
   const handlePreviewDay = useCallback((selectedDay: WorkoutDay) => {

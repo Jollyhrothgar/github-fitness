@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { WorkoutLog, PerformedExercise, LoggedSet } from '@/types';
 import { estimate1RM } from '@/types/log';
 import * as storage from '@/lib/storage';
+import { queueLogSync } from '@/lib/sync';
 
 interface UseWorkoutLogsReturn {
   logs: WorkoutLog[];
@@ -81,6 +82,7 @@ export function useWorkoutLogs(): UseWorkoutLogsReturn {
     };
 
     await storage.saveLog(updatedLog);
+    queueLogSync(updatedLog);
     await loadLogs();
   }, [loadLogs]);
 

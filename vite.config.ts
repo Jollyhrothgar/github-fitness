@@ -41,6 +41,8 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
+        navigateFallback: '/github-fitness/index.html',
+        navigateFallbackAllowlist: [/^\/github-fitness\//],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/raw\.githubusercontent\.com\/yuhonas\/free-exercise-db/,

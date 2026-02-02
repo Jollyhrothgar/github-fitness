@@ -3,6 +3,7 @@ import type { WorkoutPlan, ExerciseDefinition } from '@/types';
 import { generatePlanId } from '@/types/plan';
 import { inferExerciseFromPlan } from '@/types/exercise';
 import * as storage from '@/lib/storage';
+import { queuePlanSync } from '@/lib/sync';
 
 interface ImportResult {
   planId: string;
@@ -72,6 +73,7 @@ export function usePlans(): UsePlansReturn {
     }));
 
     await storage.savePlan(plan);
+    queuePlanSync(plan);
     await loadPlans();
     return plan.plan_meta.plan_id;
   }, [loadPlans]);

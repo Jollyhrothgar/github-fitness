@@ -435,8 +435,14 @@ export async function fullSync(): Promise<{ success: boolean; error?: string }> 
   }
 }
 
+// Track if sync has been initialized to avoid duplicate listeners
+let syncInitialized = false;
+
 // Initialize sync state on app load
 export function initializeSync(): void {
+  if (syncInitialized) return;
+  syncInitialized = true;
+
   const auth = getAuthConfig();
   const lastSync = getLastSyncTime();
   const queue = getSyncQueue();
@@ -460,12 +466,17 @@ export function initializeSync(): void {
   window.addEventListener('online', () => {
     updateState({ status: 'idle' });
     // Auto-sync when coming back online
-    processSyncQueue();
+    fullSync();
   });
 
   window.addEventListener('offline', () => {
     updateState({ status: 'offline' });
   });
+
+  // Auto-sync on app load if online (for multi-device support)
+  if (navigator.onLine) {
+    fullSync();
+  }
 }
 
 // Queue a workout log for sync
