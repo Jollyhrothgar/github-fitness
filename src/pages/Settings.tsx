@@ -191,7 +191,7 @@ export default function Settings() {
       )}
 
       {/* Workout History */}
-      {logs.logs?.filter(l => l.timestamp_end).length > 0 && (
+      {(logs.logs ?? []).filter(l => l.timestamp_end).length > 0 && (
         <section className="bg-surface rounded-lg p-4 mb-4">
           <h2 className="text-sm font-medium text-text-secondary mb-3">
             Workout History
