@@ -132,11 +132,11 @@ export default function Home() {
           Recent Workouts
         </h2>
 
-        {recentLogs.length === 0 ? (
+        {(recentLogs ?? []).length === 0 ? (
           <p className="text-text-muted text-sm">No workouts logged yet.</p>
         ) : (
           <div className="space-y-3">
-            {recentLogs.slice(0, 5).map((log) => (
+            {(recentLogs ?? []).slice(0, 5).map((log) => (
               <div
                 key={log.session_id}
                 className="p-3 bg-surface-elevated rounded-lg"
