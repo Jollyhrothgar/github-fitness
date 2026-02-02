@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { WorkoutLog, PerformedExercise, LoggedSet } from '@/types';
 import { estimate1RM } from '@/types/log';
 import * as storage from '@/lib/storage';
-import { queueLogSync, processSyncQueue, getAuthConfig } from '@/lib/sync';
+import { queueLogSync, fullSync, getAuthConfig } from '@/lib/sync';
 
 interface UseWorkoutLogsReturn {
   logs: WorkoutLog[];
@@ -102,9 +102,10 @@ export function useWorkoutLogs(): UseWorkoutLogsReturn {
     // Delete from local storage
     await storage.deleteLog(sessionId);
 
-    // If sync is configured, trigger sync to push tombstone
+    // If sync is configured, trigger full sync to push tombstone
     if (getAuthConfig() && navigator.onLine) {
-      processSyncQueue();
+      // Use fullSync to ensure tombstones are synced to GitHub
+      fullSync();
     }
 
     await loadLogs();
