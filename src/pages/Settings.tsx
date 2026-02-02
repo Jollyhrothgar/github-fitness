@@ -191,13 +191,13 @@ export default function Settings() {
       )}
 
       {/* Workout History */}
-      {logs.logs.filter(l => l.timestamp_end).length > 0 && (
+      {logs.logs?.filter(l => l.timestamp_end).length > 0 && (
         <section className="bg-surface rounded-lg p-4 mb-4">
           <h2 className="text-sm font-medium text-text-secondary mb-3">
             Workout History
           </h2>
           <div className="space-y-2">
-            {logs.logs
+            {(logs.logs ?? [])
               .filter(l => l.timestamp_end)
               .slice(0, 10)
               .map((log) => (
@@ -229,7 +229,7 @@ export default function Settings() {
                 </div>
               ))}
           </div>
-          {logs.logs.filter(l => l.timestamp_end).length > 10 && (
+          {(logs.logs ?? []).filter(l => l.timestamp_end).length > 10 && (
             <p className="text-xs text-text-muted mt-2 text-center">
               Showing last 10 workouts
             </p>
