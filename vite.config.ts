@@ -4,7 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
 export default defineConfig({
-  base: '/',
+  base: '/github-fitness/',
   plugins: [
     react(),
     VitePWA({
@@ -18,8 +18,8 @@ export default defineConfig({
         background_color: '#0f172a',
         display: 'standalone',
         orientation: 'portrait',
-        scope: '/',
-        start_url: '/',
+        scope: '/github-fitness/',
+        start_url: '/github-fitness/',
         categories: ['fitness', 'health', 'sports'],
         icons: [
           {
@@ -41,8 +41,8 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
-        navigateFallback: '/index.html',
-        navigateFallbackAllowlist: [/^\//],
+        navigateFallback: '/github-fitness/index.html',
+        navigateFallbackAllowlist: [/^\/github-fitness\//],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/raw\.githubusercontent\.com\/yuhonas\/free-exercise-db/,

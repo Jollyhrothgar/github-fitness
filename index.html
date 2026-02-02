@@ -12,6 +12,18 @@
     <meta name="description" content="Track weight training workouts with AI-generated plans. Offline-first PWA." />
     <meta name="mobile-web-app-capable" content="yes" />
     <title>GitHub Fitness</title>
+    <!-- SPA redirect handler for GitHub Pages -->
+    <script>
+      (function() {
+        var redirect = sessionStorage.getItem('spa-redirect');
+        if (redirect) {
+          sessionStorage.removeItem('spa-redirect');
+          var data = JSON.parse(redirect);
+          var url = '/github-fitness' + data.path + (data.search || '');
+          history.replaceState(null, '', url);
+        }
+      })();
+    </script>
   </head>
   <body class="bg-background text-text-primary">
     <div id="root"></div>
