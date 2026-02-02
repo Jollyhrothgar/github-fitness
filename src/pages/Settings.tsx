@@ -4,6 +4,7 @@ import { GitHubConnect } from '@/components/ui';
 import { useNotifications } from '@/hooks/useNotifications';
 import * as storage from '@/lib/storage';
 import type { WorkoutLog } from '@/types';
+import { version } from '../../package.json';
 
 export default function Settings() {
   const { config, logs } = useStorage();
@@ -52,7 +53,9 @@ export default function Settings() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+      <h1 className="text-2xl font-bold mb-6">
+        Settings <span className="text-sm font-normal text-text-muted">(v{version})</span>
+      </h1>
 
       {/* Units */}
       <section className="bg-surface rounded-lg p-4 mb-4">
