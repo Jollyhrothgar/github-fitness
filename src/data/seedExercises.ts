@@ -896,7 +896,18 @@ export const seedExercises: ExerciseDefinition[] = [
     equipment_type: 'dumbbell',
     movement_pattern: 'carry_conditioning',
     primary_muscle_groups: ['grip', 'traps', 'core'],
+    secondary_muscle_groups: ['forearms', 'shoulders', 'legs'],
     weight_entry_mode: 'per_hand',
+    instructions: [
+      'Stand between two heavy dumbbells or kettlebells with feet hip-width apart.',
+      'Hinge at the hips and grip both weights firmly with a neutral grip.',
+      'Brace your core, squeeze your shoulder blades together, and stand tall.',
+      'Keep your chest up, shoulders back, and eyes forward throughout the movement.',
+      'Walk forward with controlled, deliberate steps - avoid rushing or shuffling.',
+      'Maintain an upright posture; do not lean forward or let the weights pull you down.',
+      'Breathe steadily - short breaths through your nose work well under load.',
+      'Walk for the prescribed distance or time, then carefully set the weights down by hinging at the hips.',
+    ],
   },
   {
     id: 'suitcase_carry',
