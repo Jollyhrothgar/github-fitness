@@ -317,6 +317,45 @@ export function clearSchedule(): void {
 
 const SYNC_KEY = 'gh-fitness-last-sync';
 const ACTIVE_SESSION_KEY = 'gh-fitness-active-session';
+const TOMBSTONES_KEY = 'gh-fitness-tombstones';
+
+// ============ TOMBSTONES (for tracking deleted logs) ============
+
+import type { LogTombstone } from '@/types/sync';
+
+export function getTombstones(): LogTombstone[] {
+  try {
+    const stored = localStorage.getItem(TOMBSTONES_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error('Failed to parse tombstones:', e);
+  }
+  return [];
+}
+
+export function saveTombstones(tombstones: LogTombstone[]): void {
+  localStorage.setItem(TOMBSTONES_KEY, JSON.stringify(tombstones));
+}
+
+export function addTombstone(sessionId: string, deviceId: string): void {
+  const tombstones = getTombstones();
+  // Don't add duplicate tombstones
+  if (tombstones.some(t => t.session_id === sessionId)) {
+    return;
+  }
+  tombstones.push({
+    session_id: sessionId,
+    deleted_at: new Date().toISOString(),
+    device_id: deviceId,
+  });
+  saveTombstones(tombstones);
+}
+
+export function isDeleted(sessionId: string): boolean {
+  return getTombstones().some(t => t.session_id === sessionId);
+}
 
 export function getLastSyncTime(): Date | null {
   const stored = localStorage.getItem(SYNC_KEY);

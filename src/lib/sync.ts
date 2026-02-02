@@ -6,19 +6,23 @@ import {
   saveConfig,
   getLogs,
   saveLog,
+  deleteLog,
   getExercises,
   saveExercises,
   getPlans,
   savePlan,
   setLastSyncTime,
   getLastSyncTime,
+  getTombstones,
+  saveTombstones,
 } from './storage';
 import type {
   SyncState,
   PendingChange,
   GitHubAuthConfig,
+  LogTombstone,
 } from '@/types/sync';
-import { getLogFilePath } from '@/types/sync';
+import { getLogFilePath, SYNC_PATHS } from '@/types/sync';
 import type { WorkoutLog, ExerciseDefinition, WorkoutPlan } from '@/types';
 
 // Storage keys for sync data
@@ -236,17 +240,56 @@ async function pullPlans(client: GitHubClient): Promise<WorkoutPlan[]> {
   return plans;
 }
 
-// Merge logs from multiple devices
-function mergeLogs(local: WorkoutLog[], remote: WorkoutLog[]): WorkoutLog[] {
+// Pull tombstones from GitHub
+async function pullTombstones(client: GitHubClient): Promise<LogTombstone[]> {
+  const tombstones = await client.getFileContent<LogTombstone[]>(SYNC_PATHS.tombstones);
+  return tombstones || [];
+}
+
+// Push tombstones to GitHub
+async function syncTombstones(client: GitHubClient, tombstones: LogTombstone[]): Promise<void> {
+  const content = JSON.stringify(tombstones, null, 2);
+  await client.putFile(
+    SYNC_PATHS.tombstones,
+    content,
+    `Update tombstones (${tombstones.length} deleted logs)`
+  );
+}
+
+// Merge tombstones from multiple devices
+function mergeTombstones(local: LogTombstone[], remote: LogTombstone[]): LogTombstone[] {
+  const merged = new Map<string, LogTombstone>();
+
+  // Add all tombstones, using the earliest deletion time
+  for (const tombstone of [...remote, ...local]) {
+    const existing = merged.get(tombstone.session_id);
+    if (!existing || new Date(tombstone.deleted_at) < new Date(existing.deleted_at)) {
+      merged.set(tombstone.session_id, tombstone);
+    }
+  }
+
+  return Array.from(merged.values());
+}
+
+// Merge logs from multiple devices, filtering out tombstoned logs
+function mergeLogs(
+  local: WorkoutLog[],
+  remote: WorkoutLog[],
+  tombstones: LogTombstone[]
+): WorkoutLog[] {
+  const tombstoneSet = new Set(tombstones.map(t => t.session_id));
   const merged = new Map<string, WorkoutLog>();
 
-  // Add remote logs first
+  // Add remote logs first (skip tombstoned)
   for (const log of remote) {
+    if (tombstoneSet.has(log.session_id)) continue;
     merged.set(log.session_id, log);
   }
 
   // Add/overwrite with local logs (local takes precedence for same session)
   for (const log of local) {
+    if (tombstoneSet.has(log.session_id)) continue;
+
     const existing = merged.get(log.session_id);
     if (!existing) {
       merged.set(log.session_id, log);
@@ -369,11 +412,12 @@ export async function fullSync(): Promise<{ success: boolean; error?: string }> 
     // Process any pending changes first
     await processSyncQueue();
 
-    // Pull remote data
-    const [remoteLogs, remoteExercises, remotePlans] = await Promise.all([
+    // Pull remote data (including tombstones)
+    const [remoteLogs, remoteExercises, remotePlans, remoteTombstones] = await Promise.all([
       pullLogs(client),
       pullExercises(client),
       pullPlans(client),
+      pullTombstones(client),
     ]);
 
     // Get local data
@@ -382,12 +426,22 @@ export async function fullSync(): Promise<{ success: boolean; error?: string }> 
       getExercises(),
       getPlans(),
     ]);
+    const localTombstones = getTombstones();
 
-    // Merge and save
-    const mergedLogs = mergeLogs(localLogs, remoteLogs);
+    // Merge tombstones first (deletions from any device should be respected)
+    const mergedTombstones = mergeTombstones(localTombstones, remoteTombstones);
+    saveTombstones(mergedTombstones);
+
+    // Merge logs, filtering out tombstoned ones
+    const mergedLogs = mergeLogs(localLogs, remoteLogs, mergedTombstones);
     const mergedExercises = mergeExercises(localExercises, remoteExercises);
 
-    // Save merged data locally
+    // Delete any tombstoned logs from local storage
+    for (const tombstone of mergedTombstones) {
+      await deleteLog(tombstone.session_id);
+    }
+
+    // Save merged data locally (only non-tombstoned logs)
     for (const log of mergedLogs) {
       await saveLog(log);
     }
@@ -410,8 +464,16 @@ export async function fullSync(): Promise<{ success: boolean; error?: string }> 
       await syncPlan(client, plan);
     }
 
-    // Push any local-only logs
+    // Push tombstones to GitHub (so other devices know about deletions)
+    if (mergedTombstones.length > 0) {
+      await syncTombstones(client, mergedTombstones);
+    }
+
+    // Push any local-only logs (skip tombstoned ones)
+    const tombstoneSet = new Set(mergedTombstones.map(t => t.session_id));
     for (const log of localLogs) {
+      if (tombstoneSet.has(log.session_id)) continue;
+
       const existsRemotely = remoteLogs.some(
         (r) => r.session_id === log.session_id
       );

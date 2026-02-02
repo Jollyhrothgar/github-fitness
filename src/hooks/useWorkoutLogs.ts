@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import type { WorkoutLog, PerformedExercise, LoggedSet } from '@/types';
 import { estimate1RM } from '@/types/log';
 import * as storage from '@/lib/storage';
-import { queueLogSync } from '@/lib/sync';
+import { queueLogSync, processSyncQueue, getAuthConfig } from '@/lib/sync';
 
 interface UseWorkoutLogsReturn {
   logs: WorkoutLog[];
@@ -95,7 +95,18 @@ export function useWorkoutLogs(): UseWorkoutLogsReturn {
   }, [saveLog]);
 
   const deleteLog = useCallback(async (sessionId: string) => {
+    // Create tombstone to prevent resurrection on sync
+    const config = storage.getConfig();
+    storage.addTombstone(sessionId, config.device_id);
+
+    // Delete from local storage
     await storage.deleteLog(sessionId);
+
+    // If sync is configured, trigger sync to push tombstone
+    if (getAuthConfig() && navigator.onLine) {
+      processSyncQueue();
+    }
+
     await loadLogs();
   }, [loadLogs]);
 

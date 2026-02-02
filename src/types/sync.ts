@@ -64,6 +64,13 @@ export interface GitHubTreeEntry {
   size?: number;
 }
 
+// Tombstone for tracking deleted logs across devices
+export interface LogTombstone {
+  session_id: string;
+  deleted_at: string;
+  device_id: string;
+}
+
 // Data file paths in GitHub repo
 export const SYNC_PATHS = {
   exercises: 'data/exercises.json',
@@ -72,6 +79,7 @@ export const SYNC_PATHS = {
   logs: (date: string, deviceId: string) => `data/logs/${date}-${deviceId}.jsonl`,
   logsDir: 'data/logs',
   plansDir: 'data/plans',
+  tombstones: 'data/tombstones.json',
 } as const;
 
 // Get log file path for current device
