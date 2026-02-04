@@ -14,7 +14,7 @@ const DB_VERSION = 1;
 const DB_NAME = 'github-fitness';
 const SEED_KEY = 'gh-fitness-seeded';
 // Increment this when seed exercise data is updated (e.g., new instructions added)
-const SEED_DATA_VERSION = 2; // v2: Added instructions for exercises
+const SEED_DATA_VERSION = 3; // v3: Re-apply instructions after sync issues
 const SEED_VERSION_KEY = 'gh-fitness-seed-version';
 
 // IndexedDB schema definition
