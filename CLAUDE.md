@@ -1,6 +1,6 @@
 # GitHub Fitness
 
-PWA for tracking AI-generated workout plans with GitHub Gist sync.
+PWA for tracking AI-generated workout plans with GitHub repo sync.
 
 ## Quick Start
 
@@ -51,7 +51,7 @@ github-fitness/
 │   │
 │   ├── lib/                # Core utilities (see src/lib/CLAUDE.md)
 │   │   ├── storage.ts      # IndexedDB + localStorage
-│   │   ├── sync.ts         # GitHub Gist sync logic
+│   │   ├── sync.ts         # GitHub repo sync logic
 │   │   ├── github.ts       # GitHub API client
 │   │   └── calculations.ts # Volume, PR detection
 │   │
@@ -95,9 +95,10 @@ github-fitness/
    - `gh-fitness-last-sync` - Last sync timestamp
    - `gh-fitness-seed-version` - Seed data version for updates
 
-3. **GitHub Gist** - Cloud backup/sync
-   - Stores exercises, plans, logs as JSON
+3. **GitHub Repo** - Cloud backup/sync (via Contents API)
+   - Stores exercises, plans, logs as JSON files in a GitHub repository
    - Bi-directional sync with conflict resolution
+   - Requires a GitHub PAT with Contents read/write access
 
 ### Seed Data Versioning
 
@@ -123,7 +124,7 @@ Exercise seed data has a version number (`SEED_DATA_VERSION` in storage.ts). Whe
 ### Debugging Sync Issues
 
 1. Check `localStorage` for `gh-fitness-last-sync`
-2. Check Gist content via GitHub API or web UI
+2. Check repo content via GitHub API or web UI
 3. Look at `tombstones` for deleted items
 4. Check `device_id` for conflict resolution
 
@@ -138,7 +139,7 @@ Exercise seed data has a version number (`SEED_DATA_VERSION` in storage.ts). Whe
 - **React 19** + TypeScript + Vite
 - **TailwindCSS 4** for styling
 - **IndexedDB** (via `idb`) for local storage
-- **GitHub Gist API** for cloud sync
+- **GitHub Contents API** for cloud sync (repo-based, not Gist)
 - **PWA** with service worker (vite-plugin-pwa)
 - **Vitest** for unit tests
 - **Playwright** for E2E tests
@@ -167,7 +168,7 @@ npm run test:e2e     # E2E tests (requires build)
 - Exercise library with instructions
 - Plan builder with day scheduling
 - Progress charts and PR detection
-- GitHub Gist sync across devices
+- GitHub repo sync across devices
 - PWA installable on mobile
 
 ## File Navigation

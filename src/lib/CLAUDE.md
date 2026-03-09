@@ -8,7 +8,7 @@ Storage, sync, and utility functions for the fitness app.
 src/lib/
 ├── storage.ts        # IndexedDB + localStorage management
 ├── storage.test.ts   # Storage tests
-├── sync.ts           # GitHub Gist sync logic
+├── sync.ts           # GitHub repo sync logic
 ├── sync.test.ts      # Sync tests
 ├── github.ts         # GitHub API client
 ├── oauth.ts          # OAuth flow helpers
@@ -97,12 +97,12 @@ async function ensureSeedData(): Promise<void> {
 
 ## sync.ts
 
-Bi-directional sync with GitHub Gist.
+Bi-directional sync with a GitHub repository via the Contents API.
 
 ### Sync Strategy
 
-1. **Pull**: Fetch Gist, merge with local (prefer newer `updated_at`)
-2. **Push**: Upload local changes to Gist
+1. **Pull**: Fetch files from repo, merge with local (prefer newer timestamps)
+2. **Push**: Upload local changes to repo as file commits
 3. **Conflict resolution**: Last-write-wins based on timestamps
 4. **Tombstones**: Track deleted logs to prevent resurrection
 
@@ -110,38 +110,47 @@ Bi-directional sync with GitHub Gist.
 
 | Function | Purpose |
 |----------|---------|
-| `syncWithGist(token)` | Full bi-directional sync |
-| `createSyncGist(token, data)` | Create new Gist |
-| `updateSyncGist(token, gistId, data)` | Update existing Gist |
-| `findSyncGist(token)` | Find existing sync Gist |
-| `mergeData(local, remote)` | Merge with conflict resolution |
+| `fullSync()` | Full bi-directional sync |
+| `processSyncQueue()` | Process pending changes in queue |
+| `queueLogSync(log)` | Queue a workout log for sync |
+| `queueExercisesSync()` | Queue exercises for sync |
+| `queuePlanSync(plan)` | Queue a plan for sync |
+| `saveAuthConfig(config)` | Save GitHub auth (token, username, repo) |
+| `clearAuthConfig()` | Disconnect GitHub sync |
+| `mergeLogs(local, remote, tombstones)` | Merge logs with conflict resolution |
+| `mergeExercises(local, remote)` | Merge exercises (remote wins) |
 
-### Gist Structure
+### Repo Structure
 
-```json
-{
-  "description": "GitHub Fitness Sync Data",
-  "files": {
-    "github-fitness-data.json": {
-      "content": "{\"exercises\": [...], \"plans\": [...], \"logs\": [...]}"
-    }
-  }
-}
+```
+data/
+├── exercises.json           # All exercise definitions
+├── tombstones.json          # Deleted log markers
+├── plans/
+│   └── {planId}.json        # Individual plan files
+└── logs/
+    └── {date}-{deviceId}.jsonl  # JSONL log files per device per day
+
 ```
 
 ## github.ts
 
-GitHub API client for Gist operations.
+GitHub API client for repository file operations via the Contents API.
 
 ### Key Functions
 
 | Function | Purpose |
 |----------|---------|
-| `createGist(token, data)` | Create new Gist |
-| `updateGist(token, gistId, data)` | Update Gist |
-| `getGist(token, gistId)` | Fetch Gist content |
-| `listGists(token)` | List user's Gists |
-| `deleteGist(token, gistId)` | Delete Gist |
+| `verifyAccess()` | Check token validity and repo access |
+| `getFile(path)` | Get file contents (base64) |
+| `getFileContent<T>(path)` | Get decoded JSON file content |
+| `getFileContentRaw(path)` | Get raw file content (for JSONL) |
+| `listDirectory(path)` | List directory contents |
+| `putFile(path, content, message)` | Create or update a file |
+| `appendToFile(path, line, message)` | Append line to file (for JSONL logs) |
+| `deleteFile(path, message)` | Delete a file |
+| `getTree(path?)` | Get recursive directory tree |
+| `ensureDataStructure()` | Create data/, data/logs/, data/plans/ dirs |
 
 ## calculations.ts
 

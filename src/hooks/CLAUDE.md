@@ -14,7 +14,7 @@ src/hooks/
 ├── useWorkoutLogs.test.ts
 ├── useConfig.ts          # User preferences
 ├── useSchedule.ts        # Active workout schedule
-├── useSync.ts            # GitHub Gist sync
+├── useSync.ts            # GitHub repo sync
 ├── useTimer.ts           # Countdown timer
 ├── useNotifications.ts   # Push notifications
 └── index.ts              # Exports
@@ -147,7 +147,7 @@ const {
 
 ## useSync
 
-GitHub Gist synchronization.
+GitHub repository synchronization (via Contents API).
 
 ```typescript
 const {
