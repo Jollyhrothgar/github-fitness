@@ -24,26 +24,92 @@ export function useTimer(options: UseTimerOptions = {}): UseTimerReturn {
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
 
+  // Absolute end time in ms. Null when paused or stopped.
+  const targetEndTime = useRef<number | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const rafRef = useRef<number | null>(null);
   const warningsTriggered = useRef<Set<number>>(new Set());
 
-  const {
-    onComplete,
-    onTick,
-    warningThresholds = [30, 10],
-    onWarning,
-  } = options;
+  // Keep stable refs for callbacks so effects don't re-run on every render.
+  const onCompleteRef = useRef(options.onComplete);
+  const onTickRef = useRef(options.onTick);
+  const onWarningRef = useRef(options.onWarning);
+  const warningThresholdsRef = useRef(options.warningThresholds ?? [30, 10]);
 
-  // Cleanup interval on unmount
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+  useEffect(() => { onCompleteRef.current = options.onComplete; });
+  useEffect(() => { onTickRef.current = options.onTick; });
+  useEffect(() => { onWarningRef.current = options.onWarning; });
+  useEffect(() => { warningThresholdsRef.current = options.warningThresholds ?? [30, 10]; });
+
+  // Core tick: compute remaining from the absolute end time and update state.
+  // Returns the computed remaining value (≥ 0).
+  const tick = useCallback((): number => {
+    if (targetEndTime.current === null) return 0;
+
+    const remaining = Math.max(0, Math.ceil((targetEndTime.current - Date.now()) / 1000));
+
+    setTimeRemaining(remaining);
+    onTickRef.current?.(remaining);
+
+    // Fire warnings
+    for (const threshold of warningThresholdsRef.current) {
+      if (remaining <= threshold && !warningsTriggered.current.has(threshold)) {
+        warningsTriggered.current.add(threshold);
+        onWarningRef.current?.(remaining);
       }
-    };
+    }
+
+    return remaining;
   }, []);
 
-  // Timer tick effect
+  // Complete the timer: clear all timers, reset state, fire onComplete.
+  const complete = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    targetEndTime.current = null;
+    setTimeRemaining(0);
+    setIsRunning(false);
+    setIsPaused(false);
+    onCompleteRef.current?.();
+  }, []);
+
+  // Visibility change handler — fires immediately when the page comes back to
+  // the foreground so the UI is corrected even before the next interval tick.
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== 'visible') return;
+      if (targetEndTime.current === null) return; // paused or stopped
+
+      const remaining = tick();
+      if (remaining <= 0) {
+        complete();
+      } else {
+        // Schedule a single rAF to repaint immediately.
+        if (rafRef.current !== null) {
+          cancelAnimationFrame(rafRef.current);
+        }
+        rafRef.current = requestAnimationFrame(() => {
+          rafRef.current = null;
+          if (targetEndTime.current !== null) {
+            tick();
+          }
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [tick, complete]);
+
+  // Interval tick effect — runs once per second for UI updates.
   useEffect(() => {
     if (!isRunning || isPaused) {
       if (intervalRef.current) {
@@ -54,31 +120,11 @@ export function useTimer(options: UseTimerOptions = {}): UseTimerReturn {
     }
 
     intervalRef.current = setInterval(() => {
-      setTimeRemaining((prev) => {
-        const newTime = prev - 1;
-
-        // Call onTick
-        onTick?.(newTime);
-
-        // Check warning thresholds
-        if (onWarning) {
-          for (const threshold of warningThresholds) {
-            if (newTime === threshold && !warningsTriggered.current.has(threshold)) {
-              warningsTriggered.current.add(threshold);
-              onWarning(newTime);
-            }
-          }
-        }
-
-        // Timer complete
-        if (newTime <= 0) {
-          setIsRunning(false);
-          onComplete?.();
-          return 0;
-        }
-
-        return newTime;
-      });
+      if (targetEndTime.current === null) return;
+      const remaining = tick();
+      if (remaining <= 0) {
+        complete();
+      }
     }, 1000);
 
     return () => {
@@ -87,41 +133,71 @@ export function useTimer(options: UseTimerOptions = {}): UseTimerReturn {
         intervalRef.current = null;
       }
     };
-  }, [isRunning, isPaused, onComplete, onTick, onWarning, warningThresholds]);
+  }, [isRunning, isPaused, tick, complete]);
+
+  // Cleanup on unmount.
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   const start = useCallback((seconds: number) => {
     warningsTriggered.current.clear();
+    targetEndTime.current = Date.now() + seconds * 1000;
     setTimeRemaining(seconds);
     setIsRunning(true);
     setIsPaused(false);
   }, []);
 
   const pause = useCallback(() => {
+    if (targetEndTime.current !== null) {
+      // Capture remaining time before clearing the end time.
+      const remaining = Math.max(0, Math.ceil((targetEndTime.current - Date.now()) / 1000));
+      targetEndTime.current = null;
+      setTimeRemaining(remaining);
+    }
     setIsPaused(true);
   }, []);
 
   const resume = useCallback(() => {
+    // Recompute targetEndTime from whatever timeRemaining is at resume moment.
+    setTimeRemaining((prev) => {
+      targetEndTime.current = Date.now() + prev * 1000;
+      return prev;
+    });
     setIsPaused(false);
   }, []);
 
   const stop = useCallback(() => {
+    targetEndTime.current = null;
+    warningsTriggered.current.clear();
     setIsRunning(false);
     setIsPaused(false);
     setTimeRemaining(0);
-    warningsTriggered.current.clear();
   }, []);
 
   const addTime = useCallback((seconds: number) => {
-    setTimeRemaining((prev) => Math.max(0, prev + seconds));
+    if (targetEndTime.current !== null) {
+      // Timer is running: extend the absolute end time.
+      targetEndTime.current += seconds * 1000;
+      // Reflect immediately in state.
+      setTimeRemaining((prev) => Math.max(0, prev + seconds));
+    } else {
+      // Timer is paused or stopped: just extend the displayed time.
+      setTimeRemaining((prev) => Math.max(0, prev + seconds));
+    }
   }, []);
 
   const skip = useCallback(() => {
+    targetEndTime.current = null;
+    warningsTriggered.current.clear();
     setTimeRemaining(0);
     setIsRunning(false);
     setIsPaused(false);
-    warningsTriggered.current.clear();
-    onComplete?.();
-  }, [onComplete]);
+    onCompleteRef.current?.();
+  }, []);
 
   return {
     timeRemaining,

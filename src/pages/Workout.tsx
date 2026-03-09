@@ -32,6 +32,7 @@ export default function Workout() {
     group: string;
   } | null>(null);
   const [showingInfoExercise, setShowingInfoExercise] = useState<ExerciseDefinition | null>(null);
+  const [showEndEarlyConfirm, setShowEndEarlyConfirm] = useState(false);
 
   // Exercise substitutions map (original -> replacement)
   const [substitutions, setSubstitutions] = useState<Map<string, string>>(new Map());
@@ -101,6 +102,50 @@ export default function Workout() {
     await saveLog(newLog);
     setState('active');
   }, [plan, day, createLog, userConfig.device_id, saveLog, setActiveSessionId]);
+
+  // Handle editing an existing logged set
+  const handleEditSet = useCallback(
+    async (exerciseId: string, setIndex: number, updatedSet: LoggedSet) => {
+      if (!workoutLog) return;
+
+      const updatedLog: WorkoutLog = {
+        ...workoutLog,
+        performed_exercises: workoutLog.performed_exercises.map((pe) => {
+          if (pe.exercise_id !== exerciseId) return pe;
+          const newSets = [...pe.sets];
+          newSets[setIndex] = updatedSet;
+          return { ...pe, sets: newSets };
+        }),
+      };
+
+      setWorkoutLog(updatedLog);
+      await saveLog(updatedLog);
+    },
+    [workoutLog, saveLog]
+  );
+
+  // Handle deleting a logged set
+  const handleDeleteSet = useCallback(
+    async (exerciseId: string, setIndex: number) => {
+      if (!workoutLog) return;
+
+      const updatedLog: WorkoutLog = {
+        ...workoutLog,
+        performed_exercises: workoutLog.performed_exercises.map((pe) => {
+          if (pe.exercise_id !== exerciseId) return pe;
+          const newSets = pe.sets.filter((_, i) => i !== setIndex).map((s, i) => ({
+            ...s,
+            set_number: i + 1,
+          }));
+          return { ...pe, sets: newSets };
+        }),
+      };
+
+      setWorkoutLog(updatedLog);
+      await saveLog(updatedLog);
+    },
+    [workoutLog, saveLog]
+  );
 
   // Handle logging a set
   const handleLogSet = useCallback(
@@ -409,6 +454,8 @@ export default function Workout() {
                 barWeight={userConfig.equipment.standard_bar_weight_lbs}
                 vibrationEnabled={userConfig.timer_vibration_enabled}
                 onLogSet={(set) => handleLogSet(planned.exercise_id, set)}
+                onEditSet={handleEditSet}
+                onDeleteSet={handleDeleteSet}
                 onSubstitute={() => handleSubstitute(index, exercise, planned.substitution_group)}
                 onShowInfo={() => setShowingInfoExercise(exercise)}
                 isActive={index === activeExerciseIndex}
@@ -421,7 +468,13 @@ export default function Workout() {
         {/* Complete workout button */}
         <div className="fixed bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-background to-transparent pointer-events-none">
           <button
-            onClick={handleCompleteWorkout}
+            onClick={() => {
+              if (isWorkoutComplete()) {
+                handleCompleteWorkout();
+              } else {
+                setShowEndEarlyConfirm(true);
+              }
+            }}
             className={`w-full max-w-lg mx-auto block py-3 rounded-lg font-medium transition-colors pointer-events-auto ${
               isWorkoutComplete()
                 ? 'bg-success hover:bg-success/90'
@@ -430,9 +483,39 @@ export default function Workout() {
           >
             {isWorkoutComplete()
               ? 'Complete Workout'
-              : `${progress.completed}/${progress.total} sets done`}
+              : `End Workout (${progress.completed}/${progress.total} sets)`}
           </button>
         </div>
+
+        {/* End early confirmation */}
+        {showEndEarlyConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <div className="bg-surface rounded-xl p-6 max-w-sm w-full space-y-4">
+              <h3 className="text-lg font-bold">End workout early?</h3>
+              <p className="text-sm text-text-secondary">
+                You've completed {progress.completed} of {progress.total} sets.
+                Your progress so far will be saved.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowEndEarlyConfirm(false)}
+                  className="flex-1 min-h-[44px] py-3 bg-surface-elevated hover:bg-surface-elevated/80 rounded-lg text-sm font-medium transition-colors"
+                >
+                  Keep Going
+                </button>
+                <button
+                  onClick={() => {
+                    setShowEndEarlyConfirm(false);
+                    handleCompleteWorkout();
+                  }}
+                  className="flex-1 min-h-[44px] py-3 bg-primary hover:bg-primary-hover rounded-lg text-sm font-medium transition-colors"
+                >
+                  End & Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Rest timer */}
         <RestTimer
