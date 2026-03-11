@@ -6,9 +6,10 @@ import { SessionDetail } from './SessionDetail';
 interface SessionHistoryProps {
   logs: WorkoutLog[];
   onSelectExercise?: (exerciseId: string) => void;
+  onSaveLog?: (log: WorkoutLog) => Promise<void>;
 }
 
-export function SessionHistory({ logs, onSelectExercise }: SessionHistoryProps) {
+export function SessionHistory({ logs, onSelectExercise, onSaveLog }: SessionHistoryProps) {
   const [selectedSession, setSelectedSession] = useState<WorkoutLog | null>(null);
 
   // Sort by date, most recent first
@@ -70,6 +71,10 @@ export function SessionHistory({ logs, onSelectExercise }: SessionHistoryProps) 
           log={selectedSession}
           onClose={() => setSelectedSession(null)}
           onSelectExercise={onSelectExercise}
+          onSaveLog={onSaveLog ? async (updatedLog) => {
+            await onSaveLog(updatedLog);
+            setSelectedSession(updatedLog);
+          } : undefined}
         />
       )}
     </>

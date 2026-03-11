@@ -169,7 +169,7 @@ export default function Progress() {
       {/* Session History */}
       <section className="bg-surface rounded-lg p-4">
         <h2 className="text-sm font-medium text-text-secondary mb-3">Session History</h2>
-        <SessionHistory logs={completedLogs} onSelectExercise={handleSelectExercise} />
+        <SessionHistory logs={completedLogs} onSelectExercise={handleSelectExercise} onSaveLog={logs.saveLog} />
       </section>
     </div>
   );

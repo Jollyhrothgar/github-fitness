@@ -1,9 +1,10 @@
-import { createContext, useContext, useEffect, useRef, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, ReactNode } from 'react';
 import { useExercises } from '@/hooks/useExercises';
 import { usePlans } from '@/hooks/usePlans';
 import { useWorkoutLogs } from '@/hooks/useWorkoutLogs';
 import { useConfig } from '@/hooks/useConfig';
 import { useSchedule } from '@/hooks/useSchedule';
+import { getWeekStart } from '@/types/schedule';
 import { initializeSync, subscribeSyncState } from '@/lib/sync';
 
 // Get return types from hooks
@@ -58,6 +59,28 @@ export function StorageProvider({ children }: StorageProviderProps) {
     return unsubscribe;
   }, [exercises, plans, logs]);
 
+  // Derive weekly progress from actual logs instead of stored counter.
+  // This ensures deletions, syncs, and edits are always reflected.
+  const weeklyProgress = useMemo(() => {
+    if (!schedule.schedule) return { completed: 0, goal: 0 };
+
+    const weekStart = getWeekStart(new Date(), schedule.schedule.week_start_day);
+    const weekStartMs = weekStart.getTime();
+
+    const completed = logs.logs.filter((log) => {
+      if (!log.timestamp_end) return false;
+      return new Date(log.timestamp_start).getTime() >= weekStartMs;
+    }).length;
+
+    return { completed, goal: schedule.schedule.weekly_goal };
+  }, [logs.logs, schedule.schedule]);
+
+  // Override schedule's counter-based weeklyProgress with log-derived value
+  const scheduleWithDerivedProgress = useMemo(
+    () => ({ ...schedule, weeklyProgress }),
+    [schedule, weeklyProgress]
+  );
+
   const isLoading =
     exercises.loading ||
     plans.loading ||
@@ -72,7 +95,7 @@ export function StorageProvider({ children }: StorageProviderProps) {
         plans,
         logs,
         config,
-        schedule,
+        schedule: scheduleWithDerivedProgress,
         isLoading,
       }}
     >
